@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResumeAI — Smart Resume Screener & Optimizer</title>
+    <meta name="description" content="AI-powered resume screening for recruiters and ATS optimization for students.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========== THEME VARIABLES ========== */
+        :root, body.recruiter-mode {
+            --primary-color: #F7E7CE;
+            --secondary-color: #E3D3B8;
+            --bg-color: #102C26;
+            --card-bg: #163831;
+            --text-color: #F7E7CE;
+            --border-color: #1F4F45;
+            --btn-text-color: #102C26;
+            --table-header-bg: #13322B;
+            --muted: rgba(247, 231, 206, 0.55);
+            --focus-ring: rgba(247, 231, 206, 0.35);
+            --badge-high: #4CAF50;
+            --badge-med: #FFC107;
+            --badge-low: #EF5350;
+            --skeleton-from: rgba(247, 231, 206, 0.06);
+            --skeleton-to: rgba(247, 231, 206, 0.12);
+            --bg-gradient: linear-gradient(160deg, #102C26 0%, #0E2821 40%, #132F28 100%);
+            --shape-gradient:
+                radial-gradient(ellipse at 50% 10%, rgba(240, 245, 250, 0.28) 0%, rgba(210, 225, 240, 0.15) 20%, transparent 45%),
+                radial-gradient(ellipse at 50% 20%, rgba(180, 200, 220, 0.22) 0%, rgba(140, 170, 200, 0.12) 35%, rgba(100, 140, 180, 0.04) 60%, transparent 75%);
+            --shape-blur: 60px;
+            --shape-opacity: 1;
+            --shape-animation: none;
+        }
+
+        body.student-mode {
+            --primary-color: #191970;
+            --secondary-color: #0F0F4D;
+            --bg-color: #ECEFF1;
+            --card-bg: #FFFFFF;
+            --text-color: #191970;
+            --border-color: #CFD8DC;
+            --btn-text-color: #FFFFFF;
+            --table-header-bg: #F9FAFB;
+            --muted: rgba(25, 25, 112, 0.5);
+            --focus-ring: rgba(25, 25, 112, 0.18);
+            --badge-high: #2E7D32;
+            --badge-med: #F9A825;
+            --badge-low: #C62828;
+            --skeleton-from: rgba(25, 25, 112, 0.04);
+            --skeleton-to: rgba(25, 25, 112, 0.10);
+            --bg-gradient: linear-gradient(145deg, #ECEFF1 0%, #F0F2F5 35%, #E8ECF0 100%);
+            --shape-gradient: radial-gradient(ellipse at 50% 25%, rgba(80, 80, 200, 0.25) 0%, rgba(130, 90, 200, 0.14) 30%, rgba(100, 60, 180, 0.06) 55%, transparent 72%);
+            --shape-blur: 80px;
+            --shape-opacity: 1;
+            --shape-animation: shapeFloat 14s ease-in-out infinite;
+        }
+
+        /* ========== BASE ========== */
+        html { scroll-behavior: smooth; }
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient, var(--bg-color));
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background 0.5s ease, color 0.4s ease;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ========== TOP GRADIENT SHAPE ========== */
+        .gradient-shape {
+            position: fixed;
+            top: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 80vh;
+            border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            background: var(--shape-gradient);
+            filter: blur(var(--shape-blur));
+            opacity: var(--shape-opacity);
+            z-index: 0;
+            pointer-events: none;
+            animation: var(--shape-animation);
+            will-change: transform;
+            transition: background 0.6s ease, filter 0.6s ease, opacity 0.6s ease;
+        }
+
+        @keyframes shapeFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(18px); }
+        }
+
+        h1, h2, h3 { margin: 0 0 0.25rem; line-height: 1.3; }
+        h2 { font-size: 1.5rem; font-weight: 700; }
+        h3 { font-size: 1.1rem; font-weight: 600; }
+
+        .microcopy {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            background: var(--card-bg);
+            padding: 0.85rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.06),
+                0 4px 12px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background 0.4s ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            letter-spacing: -0.02em;
+        }
+
+        .toggle-container {
+            background: var(--bg-color);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1.15rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-color);
+            opacity: 0.6;
+            transition: all 0.25s ease;
+        }
+
+        .toggle-btn:hover { opacity: 0.85; }
+
+        .toggle-btn.active {
+            background: var(--card-bg);
+            color: var(--primary-color);
+            opacity: 1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        /* ========== LAYOUT ========== */
+        .container {
+            max-width: 880px;
+            margin: 2rem auto;
+            padding: 0 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .component {
+            display: none;
+            animation: fadeInUp 0.35s ease-out;
+        }
+
+        .component.active { display: block; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== CARDS ========== */
+        .card {
+            background: var(--card-bg);
+            border-radius: 0.875rem;
+            padding: 1.75rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            box-shadow:
+                0 1px 2px rgba(0,0,0,0.04),
+                0 4px 12px rgba(0,0,0,0.03),
+                0 8px 24px rgba(0,0,0,0.02);
+            transition: box-shadow 0.3s ease, background 0.4s ease, transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card:hover {
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.05),
+                0 6px 16px rgba(0,0,0,0.04),
+                0 12px 32px rgba(0,0,0,0.03);
+        }
+
+        /* ========== FORM ELEMENTS ========== */
+        .form-group { margin-bottom: 1.25rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .label-hint {
+            font-weight: 400;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-left: 0.35rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 0.75rem 0.85rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        input[type="text"]::placeholder, textarea::placeholder {
+            color: var(--muted);
+        }
+
+        /* ========== ROLE SUGGESTION CHIPS ========== */
+        .role-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .role-chip {
+            padding: 0.3rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            color: var(--muted);
+            background: transparent;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .role-chip:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            background: var(--focus-ring);
+        }
+
+        /* ========== DROPZONE ========== */
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary-color);
+            background: var(--focus-ring);
+        }
+
+        .dropzone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .dropzone-text {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+
+        .dropzone-text strong {
+            color: var(--primary-color);
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-preview {
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 0.5rem;
+            background: var(--focus-ring);
+            font-size: 0.82rem;
+        }
+
+        .file-preview.visible { display: flex; }
+
+        .file-preview .check { color: var(--badge-high); font-weight: 700; }
+        .file-preview .file-info { flex: 1; }
+        .file-preview .file-size { color: var(--muted); font-size: 0.75rem; }
+        .file-preview .remove-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--badge-low); font-size: 1.1rem; padding: 0 0.25rem;
+            font-family: inherit;
+        }
+
+        /* ========== BUTTONS ========== */
+        button.primary-btn {
+            background-color: var(--primary-color);
+            color: var(--btn-text-color);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        button.primary-btn:hover:not(:disabled) {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        button.primary-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button.primary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ========== PROGRESS STEPS ========== */
+        .progress-loader {
+            display: none;
+            padding: 1.5rem 0;
+        }
+
+        .progress-loader.visible { display: block; }
+
+        .progress-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--muted);
+            transition: color 0.3s ease;
+        }
+
+        .step.active { color: var(--primary-color); font-weight: 500; }
+        .step.done { color: var(--badge-high); }
+
+        .step-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--border-color);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-dot {
+            background: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+
+        .step.done .step-dot { background: var(--badge-high); }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 4px var(--focus-ring); }
+            50% { box-shadow: 0 0 0 8px transparent; }
+        }
+
+        /* ========== RESULTS ========== */
+        .result-box {
+            margin-top: 1rem;
+            padding: 1.25rem;
+            background: var(--bg-color);
+            border-radius: 0.625rem;
+            border: 1px solid var(--border-color);
+            line-height: 1.7;
+            font-size: 0.9rem;
+            animation: fadeInUp 0.35s ease-out;
+        }
+
+        .result-box h1, .result-box h2, .result-box h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.35rem;
+            color: var(--primary-color);
+        }
+
+        .result-box h1 { font-size: 1.2rem; }
+        .result-box h2 { font-size: 1.1rem; }
+        .result-box h3 { font-size: 1rem; }
+
+        .result-box ul, .result-box ol {
+            padding-left: 1.25rem;
+            margin: 0.35rem 0;
+        }
+
+        .result-box li { margin-bottom: 0.3rem; }
+
+        .result-box strong { color: var(--primary-color); }
+
+        .result-box p { margin: 0.5rem 0; }
+
+        /* ========== SUMMARY CARDS (Recruiter) ========== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.15rem;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .summary-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 0.35rem;
+            font-weight: 500;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        /* ========== TABLE ========== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tr { transition: background 0.15s ease; }
+        tbody tr:hover { background: var(--focus-ring); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .badge-high { background: var(--badge-high); }
+        .badge-med { background: var(--badge-med); color: #333; }
+        .badge-low { background: var(--badge-low); }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--muted);
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.35;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            max-width: 320px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* ========== SKELETON ========== */
+        @keyframes skeleton {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 640px) {
+            .summary-grid { grid-template-columns: 1fr; }
+            .container { padding: 0 0.75rem; }
+            .card { padding: 1.25rem; }
+            .hero-heading { font-size: 2.25rem !important; }
+            .hero-tagline { font-size: 0.95rem !important; }
+            .pill-toggle { padding: 0.2rem !important; }
+            .pill-btn { padding: 0.5rem 1rem !important; font-size: 0.8rem !important; }
+            .showcase { flex-direction: column !important; gap: 2rem !important; }
+            .showcase-text { max-width: 100% !important; }
+            .showcase-demo { max-width: 100% !important; }
+        }
+
+        /* ========== FEATURE SHOWCASE ========== */
+        .showcase-section {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 4rem 1.25rem 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .showcase-divider {
+            width: 48px;
+            height: 2px;
+            background: var(--primary-color);
+            opacity: 0.3;
+            margin: 0 auto 3rem;
+            border-radius: 1px;
+        }
+
+        .showcase {
+            display: flex;
+            align-items: center;
+            gap: 3.5rem;
+        }
+
+        .showcase-text {
+            flex: 1;
+            max-width: 420px;
+        }
+
+        .showcase-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .showcase-heading {
+            font-size: 1.65rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+            color: var(--text-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .showcase-desc {
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.65;
+            margin-bottom: 1.5rem;
+        }
+
+        .showcase-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .showcase-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .feat-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 0.4rem;
+            background: var(--focus-ring);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        /* ========== DEMO CARD ========== */
+        .showcase-demo {
+            flex: 1;
+            max-width: 440px;
+        }
+
+        .demo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow:
+                0 2px 4px rgba(0,0,0,0.03),
+                0 8px 24px rgba(0,0,0,0.04),
+                0 16px 48px rgba(0,0,0,0.02);
+            overflow: hidden;
+            position: relative;
+            transition: box-shadow 0.3s ease, background 0.4s ease;
+        }
+
+        .demo-card:hover {
+            box-shadow:
+                0 2px 6px rgba(0,0,0,0.04),
+                0 12px 32px rgba(0,0,0,0.06),
+                0 20px 56px rgba(0,0,0,0.03);
+        }
+
+        /* Demo Animation Container */
+        .demo-flow {
+            position: relative;
+            height: 260px;
+            overflow: hidden;
+        }
+
+        .demo-frame {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            opacity: 0;
+            animation: demoLoop 10s ease-in-out infinite;
+        }
+
+        .demo-frame:nth-child(1) { animation-delay: 0s; }
+        .demo-frame:nth-child(2) { animation-delay: 2.5s; }
+        .demo-frame:nth-child(3) { animation-delay: 5s; }
+        .demo-frame:nth-child(4) { animation-delay: 7.5s; }
+
+        @keyframes demoLoop {
+            0%    { opacity: 0; transform: translateY(10px); }
+            5%    { opacity: 1; transform: translateY(0); }
+            22%   { opacity: 1; transform: translateY(0); }
+            27%   { opacity: 0; transform: translateY(-8px); }
+            100%  { opacity: 0; transform: translateY(-8px); }
+        }
+
+        .demo-icon {
+            font-size: 2.2rem;
+            opacity: 0.7;
+        }
+
+        .demo-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .demo-subtitle {
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-align: center;
+            max-width: 240px;
+            line-height: 1.45;
+        }
+
+        /* Simulated Score Ring */
+        .demo-score-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--badge-high);
+            border-right-color: var(--badge-high);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--badge-high);
+            animation: scoreAppear 10s ease-in-out infinite;
+            animation-delay: 5s;
+        }
+
+        @keyframes scoreAppear {
+            0%    { transform: scale(0.8); }
+            5%    { transform: scale(1); }
+            22%   { transform: scale(1); }
+            27%   { transform: scale(0.8); }
+            100%  { transform: scale(0.8); }
+        }
+
+        /* Simulated feedback lines */
+        .demo-feedback-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            width: 80%;
+        }
+
+        .demo-line {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--focus-ring);
+        }
+
+        .demo-line:nth-child(1) { width: 100%; }
+        .demo-line:nth-child(2) { width: 85%; }
+        .demo-line:nth-child(3) { width: 92%; }
+        .demo-line:nth-child(4) { width: 70%; }
+
+        .demo-line.accent {
+            background: var(--primary-color);
+            opacity: 0.4;
+        }
+
+        /* Scan bar animation */
+        .demo-scan-bar {
+            width: 80%;
+            height: 3px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.25rem;
+        }
+
+        .demo-scan-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--primary-color);
+            border-radius: 2px;
+            animation: scanFill 10s ease-in-out infinite;
+            animation-delay: 2.5s;
+        }
+
+        @keyframes scanFill {
+            0%    { width: 0%; }
+            5%    { width: 10%; }
+            20%   { width: 95%; }
+            22%   { width: 100%; }
+            27%   { width: 100%; }
+            30%   { width: 0%; }
+            100%  { width: 0%; }
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            text-align: center;
+            padding: 3.5rem 1.25rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-heading {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--primary-color);
+            margin-bottom: 0.6rem;
+            line-height: 1.15;
+        }
+
+        .hero-tagline {
+            font-size: 1.1rem;
+            color: var(--muted);
+            max-width: 480px;
+            margin: 0 auto 2rem;
+            line-height: 1.55;
+            font-weight: 400;
+        }
+
+        /* ========== PILL TOGGLE ========== */
+        .pill-toggle {
+            display: inline-flex;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 3rem;
+            padding: 0.25rem;
+            gap: 0.2rem;
+            margin-bottom: 1.5rem;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,0.04),
+                0 4px 12px rgba(0,0,0,0.02);
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .pill-btn {
+            padding: 0.6rem 1.6rem;
+            border: none;
+            background: transparent;
+            border-radius: 2.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--muted);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .pill-btn:hover:not(.active) {
+            color: var(--text-color);
+        }
+
+        .pill-btn.active {
+            background: var(--primary-color);
+            color: var(--btn-text-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* ========== HERO DESCRIPTION ========== */
+        .hero-desc {
+            font-size: 0.9rem;
+            color: var(--muted);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+            min-height: 2.5rem;
+        }
+
+        .hero-desc-text {
+            display: none;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .hero-desc-text.active {
+            display: block;
+        }
+
+        /* ========== MINIMAL NAVBAR (no toggle) ========== */
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* ========== ABOUT SECTION ========== */
+        .about-section {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1.25rem 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-divider {
+            width: 48px;
+            height: 2px;
+            background: var(--primary-color);
+            opacity: 0.25;
+            margin: 0 auto 2.5rem;
+            border-radius: 1px;
+        }
+
+        .about-content {
+            text-align: center;
+        }
+
+        .about-heading {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            line-height: 1.25;
+        }
+
+        .about-desc {
+            font-size: 0.925rem;
+            color: var(--muted);
+            line-height: 1.75;
+            max-width: 600px;
+            margin: 0 auto 1.75rem;
+        }
+
+        .about-subheading {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            color: var(--text-color);
+            margin-bottom: 0.6rem;
+        }
+
+        .about-mission {
+            margin-top: 0.5rem;
+        }
+
+        /* ========== FADE-IN ANIMATION ========== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="student-mode">
+
+    <!-- Top Gradient Shape -->
+    <div class="gradient-shape" aria-hidden="true"></div>
+
+    <!-- Top Navigation -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="brand">ResumeAI</div>
+        <div class="nav-links">
+            <a class="nav-link" href="#features">Features</a>
+            <a class="nav-link" href="#about">About</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" aria-label="ResumeAI overview">
+        <h1 class="hero-heading">ResumeAI</h1>
+        <p class="hero-tagline">Optimize resumes. Accelerate hiring. Powered by AI.</p>
+
+        <div class="pill-toggle" role="tablist" aria-label="Mode selection">
+            <button class="pill-btn active" onclick="switchMode('student')" role="tab" aria-selected="true" aria-controls="student-mode" id="pill-student">Student Mode</button>
+            <button class="pill-btn" onclick="switchMode('recruiter')" role="tab" aria-selected="false" aria-controls="recruiter-mode" id="pill-recruiter">Recruiter Mode</button>
+        </div>
+
+        <div class="hero-desc">
+            <p class="hero-desc-text active" id="desc-student">Upload your resume, select your target role, and receive instant ATS-optimized feedback powered by AI.</p>
+            <p class="hero-desc-text" id="desc-recruiter">Analyze candidate resumes, evaluate skill alignment, and make data-driven hiring decisions.</p>
+        </div>
+    </section>
+
+    <div class="container">
+
+        <!-- ========== STUDENT MODE ========== -->
+        <div id="student-mode" class="component active" role="tabpanel">
+            <div class="card">
+                <h2>🎯 Resume Analyzer</h2>
+                <p class="microcopy">Let's optimize your resume for ATS. Upload your resume, tell us the role — our AI does the rest.</p>
+
+                <div class="form-group">
+                    <label for="student-role">Target Job Role <span style="color:var(--badge-low)">*</span> <span class="label-hint">— helps us tailor the analysis</span></label>
+                    <input type="text" id="student-role" placeholder="e.g. Software Engineer, Data Analyst..." aria-label="Enter target job role" autocomplete="off">
+                    <div class="role-chips" aria-label="Quick role suggestions">
+                        <button class="role-chip" onclick="fillRole('Software Engineer')">Software Engineer</button>
+                        <button class="role-chip" onclick="fillRole('Data Analyst')">Data Analyst</button>
+                        <button class="role-chip" onclick="fillRole('DevOps Engineer')">DevOps Engineer</button>
+                        <button class="role-chip" onclick="fillRole('Product Manager')">Product Manager</button>
+                        <button class="role-chip" onclick="fillRole('Frontend Developer')">Frontend Developer</button>
+                        <button class="role-chip" onclick="fillRole('Python Developer')">Python Developer</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Resume <span class="label-hint">— PDF or DOCX, max 2MB</span></label>
+                    <div class="dropzone" id="student-dropzone" role="button" tabindex="0" aria-label="Upload resume file">
+                        <input type="file" id="student-file" accept=".pdf,.docx" aria-label="Choose resume file">
+                        <div class="dropzone-icon">📄</div>
+                        <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop your resume here</div>
+                    </div>
+                    <div class="file-preview" id="student-file-preview">
+                        <span class="check">✓</span>
+                        <span class="file-info" id="student-file-name">—</span>
+                        <span class="file-size" id="student-file-size">—</span>
+                        <button class="remove-btn" onclick="clearStudentFile()" aria-label="Remove file">✕</button>
+                    </div>
+                </div>
+
+                <button class="primary-btn" id="student-submit-btn" onclick="handleStudentSubmit()" aria-label="Analyze resume">✨ Analyze My Resume</button>
+            </div>
+
+            <!-- Progress Loader -->
+            <div class="progress-loader" id="student-progress">
+                <div class="card">
+                    <h3>Analyzing your resume…</h3>
+                    <p class="microcopy">Hang tight — our AI is reviewing your resume.</p>
+                    <div class="progress-steps">
+                        <div class="step active" id="step-1"><span class="step-dot"></span> Scanning skills & experience…</div>
+                        <div class="step" id="step-2"><span class="step-dot"></span> Checking ATS compatibility…</div>
+                        <div class="step" id="step-3"><span class="step-dot"></span> Analyzing keyword alignment…</div>
+                        <div class="step" id="step-4"><span class="step-dot"></span> Generating personalized feedback…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="student-results" class="card" style="display:none;">
+                <h3>📋 AI Feedback</h3>
+                <p class="microcopy">Here's what our AI found — follow these suggestions to maximize your shortlisting chances.</p>
+                <div id="ai-output" class="result-box"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="student-empty" class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <p>Upload your resume and pick a target role above. You'll get personalized, AI-powered feedback in seconds.</p>
+            </div>
+        </div>
+
+        <!-- ========== RECRUITER MODE ========== -->
+        <div id="recruiter-mode" class="component" role="tabpanel">
+
+            <!-- Summary Cards -->
+            <div class="summary-grid" id="recruiter-summary" style="display:none;">
+                <div class="summary-card">
+                    <div class="label">Resumes Reviewed</div>
+                    <div class="value" id="stat-total">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Avg Match Score</div>
+                    <div class="value" id="stat-avg">—</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Top Skill Detected</div>
+                    <div class="value" id="stat-top-skill" style="font-size:1rem;">—</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Recruiter Dashboard</h2>
+                <p class="microcopy">Quick-scan candidates against your job description. Instant skill matching and scoring.</p>
+
+                <div class="form-group">
+                    <label for="recruiter-jd">Job Description <span class="label-hint">— paste JD for skill-match scoring</span></label>
+                    <textarea id="recruiter-jd" rows="4" placeholder="Paste the full job description here to enable smart matching..." aria-label="Enter job description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Resumes <span class="label-hint">— PDF or DOCX, max 2MB each</span></label>
+                    <div class="dropzone" id="recruiter-dropzone" role="button" tabindex="0" aria-label="Upload resume files">
+                        <input type="file" id="recruiter-files" multiple accept=".pdf,.docx" aria-label="Choose resume files">
+                        <div class="dropzone-icon">📂</div>
+                        <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop resumes here</div>
+                    </div>
+                    <div class="file-preview" id="recruiter-file-preview">
+                        <span class="check">✓</span>
+                        <span class="file-info" id="recruiter-file-name">—</span>
+                        <span class="file-size" id="recruiter-file-size">—</span>
+                        <button class="remove-btn" onclick="clearRecruiterFile()" aria-label="Remove file">✕</button>
+                    </div>
+                </div>
+
+                <button class="primary-btn" id="recruiter-submit-btn" onclick="handleRecruiterSubmit()" aria-label="Parse resumes">🔍 Parse & Score Resumes</button>
+            </div>
+
+            <!-- Progress Loader -->
+            <div class="progress-loader" id="recruiter-progress">
+                <div class="card">
+                    <h3>Processing resumes…</h3>
+                    <p class="microcopy">Extracting data and matching skills.</p>
+                    <div class="progress-steps">
+                        <div class="step active"><span class="step-dot"></span> Extracting text from resumes…</div>
+                        <div class="step"><span class="step-dot"></span> Identifying skills & experience…</div>
+                        <div class="step"><span class="step-dot"></span> Scoring against job description…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div id="recruiter-results" class="card" style="display:none;">
+                <h3>📊 Candidate Results</h3>
+                <p class="microcopy">Candidates ranked by skill-match score.</p>
+                <div style="overflow-x:auto;">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th>Candidate</th>
+                                <th>Email</th>
+                                <th>Match Score</th>
+                                <th>Matched Skills</th>
+                                <th>Missing Skills</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="recruiter-empty" class="empty-state">
+                <div class="empty-state-icon">📂</div>
+                <p>Upload candidate resumes and paste a job description to instantly score and rank candidates.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FEATURE SHOWCASE ========== -->
+    <section id="features" class="showcase-section" aria-label="Feature overview">
+        <div class="showcase-divider"></div>
+        <div class="showcase">
+            <div class="showcase-text">
+                <div class="showcase-label">How it works</div>
+                <h2 class="showcase-heading">AI-Powered Resume Intelligence</h2>
+                <p class="showcase-desc">ResumeAI analyzes your resume using intelligent keyword matching and contextual understanding to optimize it for ATS systems and hiring managers.</p>
+                <ul class="showcase-features">
+                    <li><span class="feat-icon">📊</span> ATS Compatibility Scoring</li>
+                    <li><span class="feat-icon">🎯</span> Role-Based Keyword Optimization</li>
+                    <li><span class="feat-icon">🔍</span> Skill Gap Detection</li>
+                    <li><span class="feat-icon">🤝</span> Recruiter Alignment Insights</li>
+                </ul>
+            </div>
+            <div class="showcase-demo">
+                <div class="demo-card">
+                    <div class="demo-flow">
+                        <!-- Frame 1: Upload -->
+                        <div class="demo-frame">
+                            <div class="demo-icon">📄</div>
+                            <div class="demo-title">Resume Uploaded</div>
+                            <div class="demo-subtitle">john_doe_resume.pdf ready for analysis</div>
+                            <div class="demo-feedback-lines">
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line"></div>
+                            </div>
+                        </div>
+                        <!-- Frame 2: Scanning -->
+                        <div class="demo-frame">
+                            <div class="demo-icon">⚙️</div>
+                            <div class="demo-title">AI Analyzing…</div>
+                            <div class="demo-subtitle">Scanning keywords, skills, and structure</div>
+                            <div class="demo-scan-bar"><div class="demo-scan-fill"></div></div>
+                        </div>
+                        <!-- Frame 3: Score -->
+                        <div class="demo-frame">
+                            <div class="demo-score-ring">87%</div>
+                            <div class="demo-title">ATS Score</div>
+                            <div class="demo-subtitle">Strong match for Software Engineer</div>
+                        </div>
+                        <!-- Frame 4: Feedback -->
+                        <div class="demo-frame">
+                            <div class="demo-icon">✅</div>
+                            <div class="demo-title">Feedback Ready</div>
+                            <div class="demo-feedback-lines">
+                                <div class="demo-line accent"></div>
+                                <div class="demo-line"></div>
+                                <div class="demo-line accent"></div>
+                                <div class="demo-line"></div>
+                            </div>
+                            <div class="demo-subtitle">4 suggestions to improve your resume</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ABOUT SECTION ========== -->
+    <section id="about" class="about-section" aria-label="About ResumeAI">
+        <div class="about-divider"></div>
+        <div class="about-content fade-in">
+            <h2 class="about-heading">About ResumeAI</h2>
+            <p class="about-desc">
+                ResumeAI is an intelligent resume analysis platform that bridges the gap between job seekers and recruiters. Powered by advanced AI, it delivers instant ATS compatibility scoring, keyword optimization, and actionable feedback — helping candidates land interviews and helping recruiters find the right talent faster.
+            </p>
+            <div class="about-mission">
+                <h3 class="about-subheading">Our Mission</h3>
+                <p class="about-desc">
+                    We believe hiring should be smarter, faster, and fairer. Our mission is to leverage AI to eliminate guesswork from the resume screening process — empowering students to present their best selves and enabling recruiters to make confident, data-driven decisions.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ========== MODE SWITCHING ==========
+        function switchMode(mode) {
+            // Update component panels
+            document.querySelectorAll('.component').forEach(el => el.classList.remove('active'));
+            document.getElementById(`${mode}-mode`).classList.add('active');
+
+            // Update pill toggle
+            document.querySelectorAll('.pill-btn').forEach(el => {
+                el.classList.remove('active');
+                el.setAttribute('aria-selected', 'false');
+            });
+            document.getElementById(`pill-${mode}`).classList.add('active');
+            document.getElementById(`pill-${mode}`).setAttribute('aria-selected', 'true');
+
+            // Update hero descriptions
+            document.querySelectorAll('.hero-desc-text').forEach(el => el.classList.remove('active'));
+            document.getElementById(`desc-${mode}`).classList.add('active');
+
+            // Update body theme
+            document.body.className = mode + '-mode';
+        }
+
+        // ========== ROLE CHIP CLICK ==========
+        function fillRole(role) {
+            document.getElementById('student-role').value = role;
+            document.getElementById('student-role').focus();
+        }
+
+        // ========== FILE HANDLING — STUDENT ==========
+        const studentFileInput = document.getElementById('student-file');
+        const studentDropzone = document.getElementById('student-dropzone');
+
+        studentFileInput.addEventListener('change', () => showStudentFilePreview());
+
+        studentDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            studentDropzone.classList.add('dragover');
+        });
+        studentDropzone.addEventListener('dragleave', () => studentDropzone.classList.remove('dragover'));
+        studentDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            studentDropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                studentFileInput.files = e.dataTransfer.files;
+                showStudentFilePreview();
+            }
+        });
+
+        function showStudentFilePreview() {
+            const file = studentFileInput.files[0];
+            if (!file) return;
+            document.getElementById('student-file-name').textContent = file.name;
+            document.getElementById('student-file-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            document.getElementById('student-file-preview').classList.add('visible');
+        }
+
+        function clearStudentFile() {
+            studentFileInput.value = '';
+            document.getElementById('student-file-preview').classList.remove('visible');
+        }
+
+        // ========== FILE HANDLING — RECRUITER ==========
+        const recruiterFileInput = document.getElementById('recruiter-files');
+        const recruiterDropzone = document.getElementById('recruiter-dropzone');
+
+        recruiterFileInput.addEventListener('change', () => showRecruiterFilePreview());
+
+        recruiterDropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            recruiterDropzone.classList.add('dragover');
+        });
+        recruiterDropzone.addEventListener('dragleave', () => recruiterDropzone.classList.remove('dragover'));
+        recruiterDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            recruiterDropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                recruiterFileInput.files = e.dataTransfer.files;
+                showRecruiterFilePreview();
+            }
+        });
+
+        function showRecruiterFilePreview() {
+            const files = recruiterFileInput.files;
+            if (!files.length) return;
+            const names = Array.from(files).map(f => f.name).join(', ');
+            const totalSize = Array.from(files).reduce((a, f) => a + f.size, 0);
+            document.getElementById('recruiter-file-name').textContent = names;
+            document.getElementById('recruiter-file-size').textContent = (totalSize / 1024).toFixed(1) + ' KB';
+            document.getElementById('recruiter-file-preview').classList.add('visible');
+        }
+
+        function clearRecruiterFile() {
+            recruiterFileInput.value = '';
+            document.getElementById('recruiter-file-preview').classList.remove('visible');
+        }
+
+        // ========== PROGRESS STEP ANIMATION ==========
+        function animateSteps(prefix, stepCount) {
+            let current = 0;
+            const interval = setInterval(() => {
+                if (current > 0) {
+                    const prev = document.getElementById(`${prefix}-${current}`);
+                    if (prev) { prev.classList.remove('active'); prev.classList.add('done'); }
+                }
+                current++;
+                if (current > stepCount) { clearInterval(interval); return; }
+                const step = document.getElementById(`${prefix}-${current}`);
+                if (step) step.classList.add('active');
+            }, 1800);
+            return interval;
+        }
+
+        function resetSteps(prefix, stepCount) {
+            for (let i = 1; i <= stepCount; i++) {
+                const step = document.getElementById(`${prefix}-${i}`);
+                if (step) { step.classList.remove('active', 'done'); }
+            }
+            const first = document.getElementById(`${prefix}-1`);
+            if (first) first.classList.add('active');
+        }
+
+        // ========== MARKDOWN-LIKE FORMATTER ==========
+        function formatAIOutput(text) {
+            // Convert markdown-ish text to HTML
+            let html = text
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                // Headers
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                // Bold
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // Numbered section headers like "1) STRENGTHS"
+                .replace(/^(\d+)\)\s*(.+)$/gm, '<h3>$1) $2</h3>')
+                // Bullet points
+                .replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>')
+                // Wrap consecutive <li> in <ul>
+                .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+                // Line breaks
+                .replace(/\n{2,}/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            return '<p>' + html + '</p>';
+        }
+
+        // ========== STUDENT SUBMIT ==========
+        async function handleStudentSubmit() {
+            const file = document.getElementById('student-file').files[0];
+            const role = document.getElementById('student-role').value.trim();
+
+            if (!role) return alert("Please enter a target job role.");
+            if (!file) return alert("Please upload your resume.");
+
+            const btn = document.getElementById('student-submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing…';
+
+            document.getElementById('student-empty').style.display = 'none';
+            document.getElementById('student-results').style.display = 'none';
+
+            // Show progress
+            const progress = document.getElementById('student-progress');
+            progress.classList.add('visible');
+            resetSteps('step', 4);
+            const stepInterval = animateSteps('step', 4);
+
+            const formData = new FormData();
+            formData.append('resume', file);
+            formData.append('job_role', role);
+
+            try {
+                const res = await fetch('/analyze', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                clearInterval(stepInterval);
+                // Mark all steps done
+                for (let i = 1; i <= 4; i++) {
+                    const s = document.getElementById(`step-${i}`);
+                    s.classList.remove('active'); s.classList.add('done');
+                }
+
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('ai-output').innerHTML = formatAIOutput(data.analysis);
+                document.getElementById('student-results').style.display = 'block';
+            } catch (e) {
+                alert(e.message || "Error analyzing resume");
+            } finally {
+                setTimeout(() => { progress.classList.remove('visible'); }, 600);
+                btn.disabled = false;
+                btn.textContent = '✨ Analyze My Resume';
+            }
+        }
+
+        // ========== RECRUITER SUBMIT ==========
+        async function handleRecruiterSubmit() {
+            const files = document.getElementById('recruiter-files').files;
+            const jd = document.getElementById('recruiter-jd').value;
+
+            if (files.length === 0) return alert("Please select resume files.");
+
+            const btn = document.getElementById('recruiter-submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing…';
+
+            document.getElementById('recruiter-empty').style.display = 'none';
+            document.getElementById('recruiter-results').style.display = 'none';
+
+            // Show progress
+            const progress = document.getElementById('recruiter-progress');
+            progress.classList.add('visible');
+
+            const formData = new FormData();
+            formData.append('resumes', files[0]);
+            formData.append('job_description', jd);
+
+            try {
+                const res = await fetch('/parse', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                const tbody = document.querySelector('#results-table tbody');
+                tbody.innerHTML = data.results.map(r => {
+                    let badgeClass = 'badge-low';
+                    let badgeLabel = 'Low Fit';
+                    if (r.score >= 70) { badgeClass = 'badge-high'; badgeLabel = 'High Fit'; }
+                    else if (r.score >= 40) { badgeClass = 'badge-med'; badgeLabel = 'Medium Fit'; }
+                    return `
+                        <tr>
+                            <td>${r.filename}</td>
+                            <td>${r.email}</td>
+                            <td><span class="badge ${badgeClass}">${r.score}% — ${badgeLabel}</span></td>
+                            <td>${r.matched_skills.join(', ') || '—'}</td>
+                            <td>${r.missing_skills.join(', ') || '—'}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Update summary cards
+                const total = data.results.length;
+                const avgScore = Math.round(data.results.reduce((a, r) => a + r.score, 0) / total);
+                const allSkills = data.results.flatMap(r => r.matched_skills);
+                const freq = {};
+                allSkills.forEach(s => freq[s] = (freq[s] || 0) + 1);
+                const topSkill = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-avg').textContent = avgScore + '%';
+                document.getElementById('stat-top-skill').textContent = topSkill ? topSkill[0] : '—';
+                document.getElementById('recruiter-summary').style.display = 'grid';
+
+                document.getElementById('recruiter-results').style.display = 'block';
+            } catch (e) {
+                alert("Error parsing resumes.");
+            } finally {
+                progress.classList.remove('visible');
+                btn.disabled = false;
+                btn.textContent = '🔍 Parse & Score Resumes';
+            }
+        }
+
+        // ========== FADE-IN ON SCROLL ==========
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    fadeObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+    </script>
+</body>
+</html>
