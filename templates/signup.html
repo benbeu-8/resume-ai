@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — ResumeAI</title>
+    <meta name="description" content="Create a free ResumeAI account to get unlimited AI-powered resume analysis.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #F7E7CE;
+            --secondary-color: #E3D3B8;
+            --bg-color: #102C26;
+            --card-bg: #163831;
+            --text-color: #F7E7CE;
+            --border-color: #1F4F45;
+            --btn-text-color: #102C26;
+            --muted: rgba(247, 231, 206, 0.55);
+            --focus-ring: rgba(247, 231, 206, 0.35);
+            --badge-low: #EF5350;
+            --badge-high: #4CAF50;
+            --bg-gradient: linear-gradient(160deg, #102C26 0%, #0E2821 40%, #132F28 100%);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient, var(--bg-color));
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gradient-shape {
+            position: fixed;
+            top: -30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 80vh;
+            border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            background:
+                radial-gradient(ellipse at 50% 10%, rgba(240, 245, 250, 0.28) 0%, rgba(210, 225, 240, 0.15) 20%, transparent 45%),
+                radial-gradient(ellipse at 50% 20%, rgba(180, 200, 220, 0.22) 0%, rgba(140, 170, 200, 0.12) 35%, rgba(100, 140, 180, 0.04) 60%, transparent 75%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 0 1.25rem;
+        }
+
+        .brand-link {
+            display: block;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border-radius: 0.875rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow:
+                0 1px 2px rgba(0,0,0,0.04),
+                0 4px 12px rgba(0,0,0,0.03),
+                0 8px 24px rgba(0,0,0,0.02);
+        }
+
+        .auth-card h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem;
+        }
+
+        .auth-card .subtitle {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .flash-msg {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .flash-error {
+            background: rgba(239, 83, 80, 0.12);
+            border: 1px solid rgba(239, 83, 80, 0.25);
+            color: #EF5350;
+        }
+
+        .flash-success {
+            background: rgba(76, 175, 80, 0.12);
+            border: 1px solid rgba(76, 175, 80, 0.25);
+            color: #4CAF50;
+        }
+
+        .form-group {
+            margin-bottom: 1.15rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .label-hint {
+            font-weight: 400;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-left: 0.25rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 0.85rem;
+            border: 1.5px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        input::placeholder {
+            color: var(--muted);
+        }
+
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: var(--btn-text-color);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            margin-top: 0.5rem;
+        }
+
+        .primary-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        .input-error {
+            color: var(--badge-low);
+            font-size: 0.78rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .auth-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-shape" aria-hidden="true"></div>
+
+    <div class="auth-container">
+        <a href="/" class="brand-link">ResumeAI</a>
+
+        <div class="auth-card">
+            <h2>Create your account</h2>
+            <p class="subtitle">Sign up to unlock unlimited AI-powered resume analysis.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/signup" id="signup-form" novalidate>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="John Doe" required autocomplete="name">
+                    <div class="input-error" id="name-error">Name is required.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+                    <div class="input-error" id="email-error">Please enter a valid email.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password <span class="label-hint">— at least 6 characters</span></label>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required autocomplete="new-password" minlength="6">
+                    <div class="input-error" id="password-error">Password must be at least 6 characters.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat your password" required autocomplete="new-password">
+                    <div class="input-error" id="confirm-error">Passwords do not match.</div>
+                </div>
+
+                <button type="submit" class="primary-btn" id="signup-btn">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Log in</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            let valid = true;
+
+            // Reset errors
+            document.querySelectorAll('.input-error').forEach(el => el.style.display = 'none');
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm_password').value;
+
+            if (!name) {
+                document.getElementById('name-error').style.display = 'block';
+                valid = false;
+            }
+
+            if (!email || !email.includes('@') || !email.includes('.')) {
+                document.getElementById('email-error').style.display = 'block';
+                valid = false;
+            }
+
+            if (password.length < 6) {
+                document.getElementById('password-error').style.display = 'block';
+                valid = false;
+            }
+
+            if (password !== confirm) {
+                document.getElementById('confirm-error').style.display = 'block';
+                valid = false;
+            }
+
+            if (!valid) e.preventDefault();
+        });
+    </script>
+</body>
+</html>

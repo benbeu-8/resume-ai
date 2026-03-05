@@ -1,9 +1,7 @@
 Flask
 Flask-Cors
-google-generativeai
 pdfplumber
-spacy
 python-dotenv
-langchain-huggingface
 gunicorn
 python-docx
+requests

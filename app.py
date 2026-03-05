@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for, flash
 from flask_cors import CORS
 import os
 import resume_parser  # Your custom module
 from dotenv import load_dotenv
 import uuid
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash
 import traceback
 import time
 from functools import wraps
 import requests
-import json
 import re
+import models
 # Load environment variables from .env file
 load_dotenv()
 
@@ -19,6 +20,7 @@ hf_api_key = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 # Note: Ensure HUGGINGFACEHUB_API_TOKEN is in your .env file
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'resumeai-dev-secret-key-change-in-production')
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for debugging
 
 UPLOAD_FOLDER = 'uploads'
@@ -26,6 +28,9 @@ ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Limit file size to 2MB
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize database
+models.init_db()
 
 # --- SECURITY & UTILS ---
 
@@ -57,9 +62,7 @@ def analyze_resume_with_llm(resume_text, job_role):
     Strict LLM wrapper function.
     Only this function calls the model.
     """
-    # Removed API key requirement as requested by user
-    # if not hf_api_key:
-    #     return "Error: LLM API key not configured."
+
 
     try:
         if not hf_api_key or hf_api_key.strip() == "":
@@ -115,12 +118,115 @@ def analyze_resume_with_llm(resume_text, job_role):
         print(f"LLM Error: {e}")
         return "Error: Could not complete analysis. Check server console for details."
 
+# --- AUTH HELPERS ---
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({"error": "auth_required", "message": "Please log in to continue."}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+def get_current_user():
+    """Return the current logged-in user or None."""
+    user_id = session.get('user_id')
+    if user_id:
+        return models.get_user_by_id(user_id)
+    return None
+
 # --- ROUTES ---
 
 @app.route('/')
 def home():
-    # This serves the 'index.html' file from the 'templates' folder
-    return render_template('index.html')
+    user = get_current_user()
+    return render_template('index.html', user=user)
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+
+        # Validation
+        if not name or not email or not password:
+            flash('All fields are required.', 'error')
+            return render_template('signup.html')
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters.', 'error')
+            return render_template('signup.html')
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return render_template('signup.html')
+
+        # Basic email format check
+        if '@' not in email or '.' not in email:
+            flash('Please enter a valid email address.', 'error')
+            return render_template('signup.html')
+
+        # Create user
+        user_id = models.create_user(name, email, password)
+        if user_id is None:
+            flash('An account with this email already exists.', 'error')
+            return render_template('signup.html')
+
+        # Log the user in
+        session['user_id'] = user_id
+        session['user_name'] = name
+        flash('Account created successfully! Welcome to ResumeAI.', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+
+        if not email or not password:
+            flash('Email and password are required.', 'error')
+            return render_template('login.html')
+
+        user = models.get_user_by_email(email)
+        if user is None or not models.verify_password(user['password_hash'], password):
+            flash('Invalid email or password.', 'error')
+            return render_template('login.html')
+
+        # Set session
+        session['user_id'] = user['id']
+        session['user_name'] = user['name']
+        flash(f'Welcome back, {user["name"]}!', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
+
+@app.route('/check-auth')
+def check_auth():
+    """API endpoint for frontend to check auth state and free usage."""
+    user_id = session.get('user_id')
+    if user_id:
+        user = models.get_user_by_id(user_id)
+        return jsonify({
+            "authenticated": True,
+            "user_name": user['name'] if user else None,
+            "analysis_count": user['resume_analysis_count'] if user else 0
+        })
+    else:
+        free_used = session.get('free_usage_used', False)
+        return jsonify({
+            "authenticated": False,
+            "free_usage_used": free_used
+        })
 
 @app.route('/parse', methods=['POST'])
 def parse_resume():
@@ -191,7 +297,20 @@ def parse_resume():
 def analyze_resume_endpoint():
     """
     Student Mode Endpoint: Analyzes resume against a job role using LLM.
+    Requires authentication after the first free analysis.
     """
+    # --- ACCESS CONTROL ---
+    user_id = session.get('user_id')
+    is_authenticated = user_id is not None
+
+    if not is_authenticated:
+        # Anonymous user — check if free analysis already used
+        if session.get('free_usage_used', False):
+            return jsonify({
+                "error": "auth_required",
+                "message": "You have used your free resume analysis. Please sign up or log in to continue using ResumeAI."
+            }), 401
+
     if 'resume' not in request.files:
         return jsonify({"error": "No resume uploaded"}), 400
     
@@ -229,6 +348,15 @@ def analyze_resume_endpoint():
         # 3. Clean up
         os.remove(file_path)
 
+        # --- TRACK USAGE ---
+        if is_authenticated:
+            models.increment_analysis_count(user_id)
+            # Save analysis to history
+            models.save_analysis(user_id, job_role, file.filename, text, analysis)
+        else:
+            # Mark free usage as consumed for anonymous user
+            session['free_usage_used'] = True
+
         return jsonify({"analysis": analysis})
 
     except Exception as e:
@@ -237,6 +365,97 @@ def analyze_resume_endpoint():
         traceback.print_exc()
         return jsonify({"error": "An internal error occurred during analysis."}), 500
     
+# --- HISTORY & COMPARISON ROUTES ---
+
+@app.route('/history')
+def history_page():
+    """Render the analysis history page (login required)."""
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('Please log in to view your analysis history.', 'error')
+        return redirect(url_for('login'))
+    user = models.get_user_by_id(user_id)
+    return render_template('history.html', user=user)
+
+@app.route('/api/history')
+def api_history():
+    """JSON API: return all analyses for the logged-in user."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "auth_required"}), 401
+    analyses = models.get_user_analyses(user_id)
+    return jsonify({"analyses": analyses})
+
+@app.route('/api/analysis/<int:analysis_id>')
+def api_analysis_detail(analysis_id):
+    """JSON API: return a single analysis by id."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "auth_required"}), 401
+    analysis = models.get_analysis_by_id(analysis_id, user_id)
+    if not analysis:
+        return jsonify({"error": "Analysis not found"}), 404
+    return jsonify({"analysis": analysis})
+
+@app.route('/api/compare', methods=['POST'])
+@rate_limit(limit=5, per=60)
+def api_compare():
+    """Run a new analysis and return it alongside a previous one for comparison."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "auth_required"}), 401
+
+    old_id = request.form.get('old_analysis_id')
+    if not old_id:
+        return jsonify({"error": "Previous analysis ID is required"}), 400
+
+    old_analysis = models.get_analysis_by_id(int(old_id), user_id)
+    if not old_analysis:
+        return jsonify({"error": "Previous analysis not found"}), 404
+
+    if 'resume' not in request.files:
+        return jsonify({"error": "No resume uploaded"}), 400
+
+    file = request.files['resume']
+    job_role = request.form.get('job_role', old_analysis['job_role'])
+
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({"error": "Invalid file type. PDF or DOCX only."}), 400
+
+    original_filename = secure_filename(file.filename)
+    unique_filename = f"{uuid.uuid4()}_{original_filename}"
+    file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+    file.save(file_path)
+
+    try:
+        if file_path.endswith('.docx'):
+            text = resume_parser.extract_text_from_docx(file_path)
+        else:
+            text = resume_parser.extract_text_from_pdf(file_path)
+
+        text = text.replace('\x00', '')
+        new_analysis_text = analyze_resume_with_llm(text, job_role)
+        os.remove(file_path)
+
+        # Save the new analysis
+        models.increment_analysis_count(user_id)
+        new_id = models.save_analysis(user_id, job_role, file.filename, text, new_analysis_text)
+        new_analysis = models.get_analysis_by_id(new_id, user_id)
+
+        return jsonify({
+            "old": old_analysis,
+            "new": new_analysis
+        })
+
+    except Exception as e:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        traceback.print_exc()
+        return jsonify({"error": "An internal error occurred during comparison."}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

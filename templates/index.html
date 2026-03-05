@@ -67,7 +67,7 @@
             color: var(--text-color);
             margin: 0;
             padding: 0;
-            transition: background 0.5s ease, color 0.4s ease;
+            transition: background 0.35s ease, color 0.35s ease;
             line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
@@ -90,7 +90,7 @@
             pointer-events: none;
             animation: var(--shape-animation);
             will-change: transform;
-            transition: background 0.6s ease, filter 0.6s ease, opacity 0.6s ease;
+            transition: background 0.35s ease, filter 0.35s ease, opacity 0.35s ease;
         }
 
         @keyframes shapeFloat {
@@ -122,7 +122,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            transition: background 0.4s ease;
+            transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -410,38 +410,89 @@
             50% { box-shadow: 0 0 0 8px transparent; }
         }
 
-        /* ========== RESULTS ========== */
+        /* ========== AI RESULTS ========== */
         .result-box {
             margin-top: 1rem;
-            padding: 1.25rem;
-            background: var(--bg-color);
-            border-radius: 0.625rem;
-            border: 1px solid var(--border-color);
-            line-height: 1.7;
-            font-size: 0.9rem;
             animation: fadeInUp 0.35s ease-out;
         }
 
-        .result-box h1, .result-box h2, .result-box h3 {
-            margin-top: 1rem;
-            margin-bottom: 0.35rem;
+        .ai-section {
+            padding: 1.1rem 1.25rem;
+            border-left: 3px solid var(--border-color);
+            background: var(--bg-color);
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.2s ease;
+        }
+        .ai-section:hover { border-left-color: var(--primary-color); }
+
+        .ai-section-title {
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--primary-color);
+            margin: 0 0 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .ai-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ai-section li {
+            position: relative;
+            padding: 0.35rem 0 0.35rem 1rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .ai-section li:last-child { border-bottom: none; }
+
+        .ai-section li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.75rem;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .ai-section p {
+            font-size: 0.85rem;
+            line-height: 1.65;
+            color: var(--text-color);
+            margin: 0.25rem 0;
+        }
+
+        .ai-section strong {
+            font-weight: 600;
             color: var(--primary-color);
         }
 
-        .result-box h1 { font-size: 1.2rem; }
-        .result-box h2 { font-size: 1.1rem; }
-        .result-box h3 { font-size: 1rem; }
-
-        .result-box ul, .result-box ol {
-            padding-left: 1.25rem;
-            margin: 0.35rem 0;
+        .ai-raw-block {
+            padding: 1.25rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.625rem;
+            font-size: 0.85rem;
+            line-height: 1.7;
         }
-
-        .result-box li { margin-bottom: 0.3rem; }
-
-        .result-box strong { color: var(--primary-color); }
-
-        .result-box p { margin: 0.5rem 0; }
+        .ai-raw-block h1, .ai-raw-block h2, .ai-raw-block h3 { color: var(--primary-color); margin-top: 0.75rem; margin-bottom: 0.25rem; }
+        .ai-raw-block h1 { font-size: 1rem; }
+        .ai-raw-block h2 { font-size: 0.95rem; }
+        .ai-raw-block h3 { font-size: 0.9rem; }
+        .ai-raw-block ul { padding-left: 1.25rem; margin: 0.25rem 0; }
+        .ai-raw-block li { margin-bottom: 0.2rem; }
+        .ai-raw-block strong { color: var(--primary-color); }
+        .ai-raw-block p { margin: 0.35rem 0; }
 
         /* ========== SUMMARY CARDS (Recruiter) ========== */
         .summary-grid {
@@ -963,6 +1014,151 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* ========== AUTH MODAL ========== */
+        .auth-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-modal-overlay.visible {
+            display: flex;
+        }
+
+        .auth-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2.25rem;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow:
+                0 4px 12px rgba(0,0,0,0.1),
+                0 12px 40px rgba(0,0,0,0.15);
+            animation: fadeInUp 0.35s ease-out;
+        }
+
+        .auth-modal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .auth-modal h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-modal p {
+            color: var(--muted);
+            font-size: 0.875rem;
+            line-height: 1.55;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-modal-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .auth-modal-actions a {
+            flex: 1;
+            display: inline-block;
+            padding: 0.7rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .auth-modal-actions .btn-signup {
+            background: var(--primary-color);
+            color: var(--btn-text-color);
+        }
+
+        .auth-modal-actions .btn-signup:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .auth-modal-actions .btn-login {
+            background: transparent;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .auth-modal-actions .btn-login:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .auth-modal-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        /* ========== NAV AUTH LINKS ========== */
+        .nav-auth {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-left: 1rem;
+        }
+
+        .nav-auth-link {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-auth-link:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-auth-link.btn-nav-signup {
+            background: var(--primary-color);
+            color: var(--btn-text-color);
+        }
+
+        .nav-auth-link.btn-nav-signup:hover {
+            background: var(--secondary-color);
+        }
+
+        .nav-user-name {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-color);
+            opacity: 0.85;
+        }
+
+        .nav-divider {
+            width: 1px;
+            height: 16px;
+            background: var(--border-color);
+            margin: 0 0.25rem;
+        }
     </style>
 </head>
 <body class="student-mode">
@@ -976,6 +1172,19 @@
         <div class="nav-links">
             <a class="nav-link" href="#features">Features</a>
             <a class="nav-link" href="#about">About</a>
+            {% if user %}
+                <a class="nav-link" href="/history">History</a>
+            {% endif %}
+            <div class="nav-divider"></div>
+            <div class="nav-auth">
+                {% if user %}
+                    <span class="nav-user-name">👤 {{ user['name'] }}</span>
+                    <a class="nav-auth-link" href="/logout">Logout</a>
+                {% else %}
+                    <a class="nav-auth-link" href="/login">Log In</a>
+                    <a class="nav-auth-link btn-nav-signup" href="/signup">Sign Up</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
@@ -1050,8 +1259,11 @@
 
             <!-- Results -->
             <div id="student-results" class="card" style="display:none;">
-                <h3>📋 AI Feedback</h3>
-                <p class="microcopy">Here's what our AI found — follow these suggestions to maximize your shortlisting chances.</p>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+                    <h3 style="margin:0;">Analysis Report</h3>
+                    <span style="font-size:0.75rem; color:var(--muted); font-weight:500;" id="analysis-timestamp"></span>
+                </div>
+                <p class="microcopy" style="margin-bottom:1rem;">AI-generated feedback for your target role. Follow these suggestions to improve your shortlisting chances.</p>
                 <div id="ai-output" class="result-box"></div>
             </div>
 
@@ -1226,6 +1438,20 @@
         </div>
     </section>
 
+    <!-- ========== AUTH REQUIRED MODAL ========== -->
+    <div class="auth-modal-overlay" id="auth-modal">
+        <div class="auth-modal" style="position:relative;">
+            <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+            <div class="auth-modal-icon">🔒</div>
+            <h3>Free Analysis Used</h3>
+            <p>You have used your free resume analysis. Please sign up or log in to continue using ResumeAI.</p>
+            <div class="auth-modal-actions">
+                <a href="/signup" class="btn-signup">Sign Up</a>
+                <a href="/login" class="btn-login">Log In</a>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ========== MODE SWITCHING ==========
         function switchMode(mode) {
@@ -1348,28 +1574,102 @@
             if (first) first.classList.add('active');
         }
 
-        // ========== MARKDOWN-LIKE FORMATTER ==========
+        // ========== PROFESSIONAL AI OUTPUT FORMATTER ==========
         function formatAIOutput(text) {
-            // Convert markdown-ish text to HTML
+            // Section icons for a subtle professional touch
+            const sectionIcons = {
+                'strength': '✦', 'strong': '✦', 'positive': '✦', 'good': '✦', 'well': '✦',
+                'flaw': '△', 'weakness': '△', 'weak': '△', 'issue': '△', 'problem': '△', 'concern': '△',
+                'missing': '○', 'absent': '○', 'lack': '○', 'gap': '○',
+                'action': '→', 'suggest': '→', 'recommend': '→', 'add': '→', 'improv': '→', 'tip': '→',
+                'ats': '◇', 'format': '◇', 'keyword': '◇', 'optim': '◇',
+                'overall': '◈', 'summary': '◈', 'conclusion': '◈', 'score': '◈',
+            };
+
+            function getIcon(title) {
+                const t = title.toLowerCase();
+                for (const [key, icon] of Object.entries(sectionIcons)) {
+                    if (t.includes(key)) return icon;
+                }
+                return '—';
+            }
+
+            // Try to split into sections by headings
+            const lines = text.split('\n');
+            const sections = [];
+            let currentSection = null;
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                // Detect section headers: "### Title", "## Title", "# Title", "1) TITLE", "**TITLE**"
+                const headerMatch = trimmed.match(/^#{1,3}\s+(.+)$/) ||
+                                   trimmed.match(/^\d+[\)\.:]\s*(.+)$/) ||
+                                   trimmed.match(/^\*\*([A-Z][^*]+)\*\*$/);
+
+                if (headerMatch) {
+                    if (currentSection) sections.push(currentSection);
+                    currentSection = { title: headerMatch[1].replace(/\*\*/g, '').trim(), items: [] };
+                } else if (currentSection) {
+                    // Clean up the line
+                    let content = trimmed
+                        .replace(/^[\-\*•]\s+/, '')   // remove bullet prefix
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');  // bold
+                    currentSection.items.push(content);
+                } else {
+                    // Content before any heading — create a default section
+                    currentSection = { title: 'Overview', items: [] };
+                    let content = trimmed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    currentSection.items.push(content);
+                }
+            }
+            if (currentSection) sections.push(currentSection);
+
+            // If no clear sections found, fall back to raw formatting
+            if (sections.length <= 1 && sections[0] && sections[0].items.length > 20) {
+                return formatAIRaw(text);
+            }
+
+            // Build professional section cards
+            return sections.map(s => {
+                const icon = getIcon(s.title);
+                const itemsHtml = s.items.map(item => {
+                    // If it looks like a paragraph (long text without bullet structure)
+                    if (item.length > 120 && !item.startsWith('<strong>')) {
+                        return `<p>${item}</p>`;
+                    }
+                    return `<li>${item}</li>`;
+                }).join('');
+
+                const hasListItems = s.items.some(i => i.length <= 120 || i.startsWith('<strong>'));
+                const body = hasListItems
+                    ? `<ul>${itemsHtml}</ul>`
+                    : itemsHtml;
+
+                return `<div class="ai-section"><div class="ai-section-title">${icon} ${escHtml(s.title)}</div>${body}</div>`;
+            }).join('');
+        }
+
+        // Fallback raw formatter for unstructured output
+        function formatAIRaw(text) {
             let html = text
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                // Headers
                 .replace(/^### (.+)$/gm, '<h3>$1</h3>')
                 .replace(/^## (.+)$/gm, '<h2>$1</h2>')
                 .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-                // Bold
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                // Numbered section headers like "1) STRENGTHS"
-                .replace(/^(\d+)\)\s*(.+)$/gm, '<h3>$1) $2</h3>')
-                // Bullet points
                 .replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>')
-                // Wrap consecutive <li> in <ul>
                 .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
-                // Line breaks
                 .replace(/\n{2,}/g, '</p><p>')
                 .replace(/\n/g, '<br>');
+            return '<div class="ai-raw-block"><p>' + html + '</p></div>';
+        }
 
-            return '<p>' + html + '</p>';
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
         }
 
         // ========== STUDENT SUBMIT ==========
@@ -1408,18 +1708,41 @@
                     s.classList.remove('active'); s.classList.add('done');
                 }
 
+                // Check for auth_required error
+                if (data.error === 'auth_required') {
+                    showAuthModal();
+                    return;
+                }
+
                 if (data.error) throw new Error(data.error);
 
                 document.getElementById('ai-output').innerHTML = formatAIOutput(data.analysis);
+                document.getElementById('analysis-timestamp').textContent = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 document.getElementById('student-results').style.display = 'block';
             } catch (e) {
-                alert(e.message || "Error analyzing resume");
+                if (e.message && e.message !== 'auth_required') {
+                    alert(e.message || "Error analyzing resume");
+                }
             } finally {
                 setTimeout(() => { progress.classList.remove('visible'); }, 600);
                 btn.disabled = false;
                 btn.textContent = '✨ Analyze My Resume';
             }
         }
+
+        // ========== AUTH MODAL ==========
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.add('visible');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('visible');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('auth-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAuthModal();
+        });
 
         // ========== RECRUITER SUBMIT ==========
         async function handleRecruiterSubmit() {

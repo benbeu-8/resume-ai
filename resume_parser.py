@@ -1,11 +1,6 @@
 import pdfplumber
-import spacy
-import re 
+import re
 import docx
-
-# Load the "brain" (the pre-trained English model)
-# This model knows what English words look like, what verbs are, etc.
-nlp = spacy.load("en_core_web_sm")
 
 # Extensive Database of Skills
 SKILLS_DB = [
@@ -129,22 +124,3 @@ def calculate_match_score(candidate_skills, jd_skills):
     score = (len(matches) / len(jd_set)) * 100 if len(jd_set) > 0 else 0
     return round(score, 2), matches, missing
 
-# --- MAIN EXECUTION ---
-if __name__ == "__main__":
-    pdf_file_path = "sample_resume.pdf" 
-    
-    try:
-        print(f"--- Processing {pdf_file_path} ---")
-        
-        # Step 1: Extract
-        raw_data = extract_text_from_pdf(pdf_file_path)
-        
-        # Step 2: Extract Specific Details (NEW STEP)
-        details = extract_details(raw_data)
-        
-        print("\n--- Extracted Info ---")
-        print(f"Candidate Email: {details['email']}")
-        print(f"Skills Found:    {details['skills_section'][:100]}...") # Print first 100 chars of skills
-        
-    except FileNotFoundError:
-        print("Error: Could not find the PDF file.")

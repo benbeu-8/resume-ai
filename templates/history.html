@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History — ResumeAI</title>
+    <meta name="description" content="Track your resume analysis history and compare improvements over time.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #191970;
+            --secondary-color: #0F0F4D;
+            --bg-color: #ECEFF1;
+            --card-bg: #FFFFFF;
+            --text-color: #191970;
+            --border-color: #CFD8DC;
+            --btn-text-color: #FFFFFF;
+            --table-header-bg: #F9FAFB;
+            --muted: rgba(25, 25, 112, 0.5);
+            --focus-ring: rgba(25, 25, 112, 0.18);
+            --badge-high: #2E7D32;
+            --badge-med: #F9A825;
+            --badge-low: #C62828;
+            --bg-gradient: linear-gradient(145deg, #ECEFF1 0%, #F0F2F5 35%, #E8ECF0 100%);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient, var(--bg-color));
+            color: var(--text-color);
+            margin: 0; padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            background: var(--card-bg);
+            padding: 0.85rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .brand { font-weight: 700; font-size: 1.3rem; color: var(--primary-color); letter-spacing: -0.02em; text-decoration: none; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-link {
+            font-size: 0.85rem; font-weight: 500; color: var(--muted);
+            text-decoration: none; cursor: pointer; transition: color 0.2s ease;
+        }
+        .nav-link:hover { color: var(--primary-color); }
+        .nav-link.active-link { color: var(--primary-color); font-weight: 600; }
+        .nav-divider { width: 1px; height: 16px; background: var(--border-color); }
+        .nav-user-name { font-size: 0.82rem; font-weight: 500; color: var(--text-color); opacity: 0.85; }
+        .nav-auth { display: flex; gap: 0.5rem; align-items: center; margin-left: 1rem; }
+        .nav-auth-link {
+            font-size: 0.82rem; font-weight: 500; color: var(--muted);
+            text-decoration: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; transition: all 0.2s ease;
+        }
+        .nav-auth-link:hover { color: var(--primary-color); }
+
+        /* ========== LAYOUT ========== */
+        .container { max-width: 960px; margin: 2rem auto; padding: 0 1.25rem; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.25rem; }
+        .page-header p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+        /* ========== CARDS ========== */
+        .card {
+            background: var(--card-bg);
+            border-radius: 0.875rem;
+            padding: 1.75rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        /* ========== TREND CHART ========== */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .chart-empty {
+            display: flex; align-items: center; justify-content: center;
+            height: 200px; color: var(--muted); font-size: 0.9rem; text-align: center;
+        }
+
+        /* ========== TIMELINE ========== */
+        .timeline-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem;
+        }
+        .timeline-header h2 { font-size: 1.2rem; margin: 0; }
+        .timeline-count { color: var(--muted); font-size: 0.82rem; }
+
+        .analysis-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            background: var(--card-bg);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        .analysis-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transform: translateY(-1px);
+        }
+
+        .analysis-score-ring {
+            width: 48px; height: 48px; border-radius: 50%;
+            border: 3px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.82rem; font-weight: 700; flex-shrink: 0;
+        }
+        .analysis-score-ring.high { border-color: var(--badge-high); color: var(--badge-high); }
+        .analysis-score-ring.med { border-color: var(--badge-med); color: var(--badge-med); }
+        .analysis-score-ring.low { border-color: var(--badge-low); color: var(--badge-low); }
+        .analysis-score-ring.none { border-color: var(--border-color); color: var(--muted); font-size: 0.7rem; }
+
+        .analysis-info { flex: 1; min-width: 0; }
+        .analysis-role { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.15rem; }
+        .analysis-meta { color: var(--muted); font-size: 0.78rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+        .analysis-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .btn-sm {
+            padding: 0.4rem 0.85rem; border-radius: 0.375rem;
+            font-size: 0.78rem; font-weight: 500; border: none;
+            cursor: pointer; font-family: inherit; transition: all 0.2s ease; text-decoration: none;
+        }
+        .btn-view { background: var(--focus-ring); color: var(--primary-color); }
+        .btn-view:hover { background: rgba(25,25,112,0.25); }
+        .btn-compare { background: var(--primary-color); color: var(--btn-text-color); }
+        .btn-compare:hover { background: var(--secondary-color); }
+
+        /* ========== DETAIL PANEL ========== */
+        .detail-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 200; justify-content: center; align-items: flex-start;
+            padding: 2rem 1rem; overflow-y: auto;
+        }
+        .detail-overlay.visible { display: flex; }
+
+        .detail-panel {
+            background: var(--card-bg); border-radius: 1rem;
+            padding: 2rem; width: 100%; max-width: 700px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            animation: slideUp 0.3s ease-out;
+            position: relative; margin-top: 2rem;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detail-close {
+            position: absolute; top: 1rem; right: 1rem;
+            background: none; border: none; font-size: 1.2rem;
+            color: var(--muted); cursor: pointer; padding: 0.25rem;
+        }
+        .detail-header { margin-bottom: 1.25rem; }
+        .detail-header h3 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+        .detail-header .detail-meta { color: var(--muted); font-size: 0.82rem; }
+
+        .detail-body {
+            background: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 0.625rem; padding: 1.25rem;
+            max-height: 60vh; overflow-y: auto;
+            font-size: 0.88rem; line-height: 1.7;
+        }
+        .detail-body h1, .detail-body h2, .detail-body h3 { color: var(--primary-color); margin-top: 1rem; margin-bottom: 0.35rem; }
+        .detail-body h1 { font-size: 1.1rem; }
+        .detail-body h2 { font-size: 1rem; }
+        .detail-body h3 { font-size: 0.95rem; }
+        .detail-body ul, .detail-body ol { padding-left: 1.25rem; margin: 0.35rem 0; }
+        .detail-body li { margin-bottom: 0.3rem; }
+        .detail-body strong { color: var(--primary-color); }
+        .detail-body p { margin: 0.5rem 0; }
+
+        /* ========== COMPARE PANEL ========== */
+        .compare-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 200; justify-content: center; align-items: flex-start;
+            padding: 2rem 1rem; overflow-y: auto;
+        }
+        .compare-overlay.visible { display: flex; }
+
+        .compare-panel {
+            background: var(--card-bg); border-radius: 1rem;
+            padding: 2rem; width: 100%; max-width: 1100px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            animation: slideUp 0.3s ease-out;
+            position: relative; margin-top: 2rem;
+        }
+
+        .compare-upload {
+            padding: 1.5rem;
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .compare-upload:hover { border-color: var(--primary-color); background: var(--focus-ring); }
+        .compare-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+        .compare-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+        }
+        .compare-col h4 {
+            font-size: 0.9rem; font-weight: 600; margin: 0 0 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .compare-col .detail-body { max-height: 50vh; }
+
+        .score-change {
+            display: inline-flex; align-items: center; gap: 0.25rem;
+            padding: 0.25rem 0.65rem; border-radius: 2rem;
+            font-size: 0.78rem; font-weight: 600;
+        }
+        .score-change.up { background: rgba(46,125,50,0.1); color: var(--badge-high); }
+        .score-change.down { background: rgba(198,40,40,0.1); color: var(--badge-low); }
+        .score-change.same { background: var(--focus-ring); color: var(--muted); }
+
+        .compare-loading {
+            text-align: center; padding: 3rem; color: var(--muted); font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color); color: var(--btn-text-color);
+            padding: 0.7rem 1.25rem; border: none; border-radius: 0.5rem;
+            font-weight: 600; font-size: 0.875rem; cursor: pointer;
+            width: 100%; transition: all 0.25s ease; font-family: inherit;
+        }
+        .btn-primary:hover { background-color: var(--secondary-color); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; font-weight: 500; font-size: 0.875rem; }
+        .label-hint { font-weight: 400; font-size: 0.78rem; color: var(--muted); margin-left: 0.25rem; }
+        input[type="text"] {
+            width: 100%; padding: 0.65rem 0.85rem;
+            border: 1.5px solid var(--border-color); border-radius: 0.5rem;
+            background: var(--bg-color); color: var(--text-color);
+            font-family: inherit; font-size: 0.875rem; outline: none;
+            transition: border-color 0.2s ease;
+        }
+        input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--focus-ring); }
+
+        .file-info-sm { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+
+        /* ========== EMPTY STATE ========== */
+        .empty-state {
+            text-align: center; padding: 3rem 1rem; color: var(--muted);
+        }
+        .empty-state-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.35; }
+        .empty-state p { font-size: 0.9rem; max-width: 400px; margin: 0 auto; }
+        .empty-state a { color: var(--primary-color); text-decoration: none; font-weight: 500; }
+
+        @media (max-width: 768px) {
+            .compare-grid { grid-template-columns: 1fr; }
+            .analysis-card { flex-wrap: wrap; }
+            .analysis-actions { width: 100%; justify-content: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="brand">ResumeAI</a>
+        <div class="nav-links">
+            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link active-link" href="/history">History</a>
+            <div class="nav-divider"></div>
+            <div class="nav-auth">
+                {% if user %}
+                    <span class="nav-user-name">👤 {{ user['name'] }}</span>
+                    <a class="nav-auth-link" href="/logout">Logout</a>
+                {% else %}
+                    <a class="nav-auth-link" href="/login">Log In</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📈 Analysis History</h1>
+            <p>Track your resume improvements over time and compare revisions side-by-side.</p>
+        </div>
+
+        <!-- Trend Chart -->
+        <div class="card" id="chart-card">
+            <h2 style="font-size:1.1rem; margin-bottom:0.75rem;">Score Trend</h2>
+            <div class="chart-container" id="chart-container">
+                <canvas id="trend-chart"></canvas>
+            </div>
+            <div class="chart-empty" id="chart-empty" style="display:none;">
+                <p>📊 Your score trend will appear here once you have analyses with detected scores.</p>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-header">
+            <h2>Your Analyses</h2>
+            <span class="timeline-count" id="timeline-count"></span>
+        </div>
+        <div id="timeline-list"></div>
+        <div class="empty-state" id="empty-state" style="display:none;">
+            <div class="empty-state-icon">📝</div>
+            <p>No analyses yet. <a href="/">Go to Student Mode</a> and analyze your first resume to get started.</p>
+        </div>
+    </div>
+
+    <!-- Detail Overlay -->
+    <div class="detail-overlay" id="detail-overlay">
+        <div class="detail-panel">
+            <button class="detail-close" onclick="closeDetail()">✕</button>
+            <div class="detail-header">
+                <h3 id="detail-title"></h3>
+                <div class="detail-meta" id="detail-meta"></div>
+            </div>
+            <div class="detail-body" id="detail-body"></div>
+        </div>
+    </div>
+
+    <!-- Compare Overlay -->
+    <div class="compare-overlay" id="compare-overlay">
+        <div class="compare-panel">
+            <button class="detail-close" onclick="closeCompare()">✕</button>
+
+            <!-- Upload Step -->
+            <div id="compare-upload-step">
+                <h3 style="margin:0 0 0.25rem;">🔄 Compare Resume Revisions</h3>
+                <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.25rem;">
+                    Upload your revised resume to compare against: <strong id="compare-old-label"></strong>
+                </p>
+
+                <div class="form-group">
+                    <label>Job Role <span class="label-hint">— defaults to previous role</span></label>
+                    <input type="text" id="compare-role" placeholder="e.g. Software Engineer">
+                </div>
+
+                <div class="compare-upload" id="compare-dropzone">
+                    <input type="file" id="compare-file" accept=".pdf,.docx">
+                    <div style="font-size:1.5rem; margin-bottom:0.35rem;">📄</div>
+                    <div style="font-size:0.85rem; color:var(--muted);"><strong style="color:var(--primary-color);">Click to upload</strong> your revised resume</div>
+                </div>
+                <div class="file-info-sm" id="compare-file-info" style="display:none;"></div>
+
+                <button class="btn-primary" id="compare-submit-btn" onclick="runComparison()" disabled>
+                    🔍 Compare Resumes
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="compare-loading" id="compare-loading" style="display:none;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">⚙️</div>
+                <p>Analyzing your revised resume…<br>This may take a moment.</p>
+            </div>
+
+            <!-- Results -->
+            <div id="compare-results" style="display:none;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                    <h3 style="margin:0;">Comparison Results</h3>
+                    <div id="compare-score-badge"></div>
+                </div>
+                <div class="compare-grid">
+                    <div class="compare-col">
+                        <h4>📄 Previous Analysis <span style="font-weight:400; color:var(--muted); font-size:0.78rem;" id="compare-old-date"></span></h4>
+                        <div class="detail-body" id="compare-old-body"></div>
+                    </div>
+                    <div class="compare-col">
+                        <h4>✨ New Analysis <span style="font-weight:400; color:var(--muted); font-size:0.78rem;" id="compare-new-date"></span></h4>
+                        <div class="detail-body" id="compare-new-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allAnalyses = [];
+        let compareOldId = null;
+
+        // ========== LOAD DATA ==========
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if (data.error) { window.location.href = '/login'; return; }
+                allAnalyses = data.analyses;
+                renderTimeline(allAnalyses);
+                renderChart(allAnalyses);
+            } catch (e) {
+                console.error('Failed to load history:', e);
+            }
+        }
+
+        // ========== TIMELINE ==========
+        function renderTimeline(analyses) {
+            const list = document.getElementById('timeline-list');
+            const empty = document.getElementById('empty-state');
+            const count = document.getElementById('timeline-count');
+
+            if (!analyses.length) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                count.textContent = '';
+                return;
+            }
+
+            empty.style.display = 'none';
+            count.textContent = `${analyses.length} analysis${analyses.length > 1 ? 'es' : ''}`;
+
+            list.innerHTML = analyses.map(a => {
+                const scoreClass = a.score >= 70 ? 'high' : a.score >= 40 ? 'med' : a.score !== null ? 'low' : 'none';
+                const scoreText = a.score !== null ? `${a.score}%` : '—';
+                const date = new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const time = new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="analysis-card" onclick="viewAnalysis(${a.id})">
+                        <div class="analysis-score-ring ${scoreClass}">${scoreText}</div>
+                        <div class="analysis-info">
+                            <div class="analysis-role">${escHtml(a.job_role)}</div>
+                            <div class="analysis-meta">
+                                <span>📄 ${escHtml(a.filename)}</span>
+                                <span>📅 ${date} at ${time}</span>
+                            </div>
+                        </div>
+                        <div class="analysis-actions">
+                            <button class="btn-sm btn-view" onclick="event.stopPropagation(); viewAnalysis(${a.id})">View</button>
+                            <button class="btn-sm btn-compare" onclick="event.stopPropagation(); openCompare(${a.id}, '${escHtml(a.job_role)}', '${date}')">Compare</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ========== TREND CHART (Canvas) ==========
+        function renderChart(analyses) {
+            const scored = analyses.filter(a => a.score !== null).reverse(); // oldest first
+            const canvas = document.getElementById('trend-chart');
+            const emptyEl = document.getElementById('chart-empty');
+            const container = document.getElementById('chart-container');
+
+            if (scored.length < 1) {
+                canvas.style.display = 'none';
+                emptyEl.style.display = 'flex';
+                return;
+            }
+
+            canvas.style.display = 'block';
+            emptyEl.style.display = 'none';
+
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const W = rect.width;
+            const H = rect.height;
+            const pad = { top: 20, right: 30, bottom: 40, left: 45 };
+            const chartW = W - pad.left - pad.right;
+            const chartH = H - pad.top - pad.bottom;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Grid lines
+            ctx.strokeStyle = 'rgba(25,25,112,0.08)';
+            ctx.lineWidth = 1;
+            for (let v = 0; v <= 100; v += 25) {
+                const y = pad.top + chartH - (v / 100) * chartH;
+                ctx.beginPath();
+                ctx.moveTo(pad.left, y);
+                ctx.lineTo(W - pad.right, y);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(25,25,112,0.4)';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(v + '%', pad.left - 8, y + 4);
+            }
+
+            // Data points
+            const points = scored.map((a, i) => {
+                const x = scored.length === 1
+                    ? pad.left + chartW / 2
+                    : pad.left + (i / (scored.length - 1)) * chartW;
+                const y = pad.top + chartH - (a.score / 100) * chartH;
+                return { x, y, score: a.score, date: a.created_at, role: a.job_role };
+            });
+
+            // Fill area
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, pad.top + chartH);
+            points.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.lineTo(points[points.length - 1].x, pad.top + chartH);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+            grad.addColorStop(0, 'rgba(25,25,112,0.15)');
+            grad.addColorStop(1, 'rgba(25,25,112,0.02)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Line
+            ctx.beginPath();
+            ctx.strokeStyle = '#191970';
+            ctx.lineWidth = 2.5;
+            ctx.lineJoin = 'round';
+            points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.stroke();
+
+            // Dots + labels
+            points.forEach((p, i) => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#191970';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+
+                // Date label
+                ctx.fillStyle = 'rgba(25,25,112,0.45)';
+                ctx.font = '10px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                const d = new Date(p.date);
+                ctx.fillText(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), p.x, pad.top + chartH + 16);
+
+                // Score label
+                ctx.fillStyle = '#191970';
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.fillText(p.score + '%', p.x, p.y - 12);
+            });
+        }
+
+        // ========== VIEW DETAIL ==========
+        async function viewAnalysis(id) {
+            try {
+                const res = await fetch(`/api/analysis/${id}`);
+                const data = await res.json();
+                if (data.error) return alert(data.error);
+
+                const a = data.analysis;
+                document.getElementById('detail-title').textContent = `${a.job_role}`;
+                const d = new Date(a.created_at);
+                document.getElementById('detail-meta').textContent =
+                    `${a.filename} · ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}` +
+                    (a.score !== null ? ` · Score: ${a.score}%` : '');
+                document.getElementById('detail-body').innerHTML = formatAIOutput(a.analysis_result);
+                document.getElementById('detail-overlay').classList.add('visible');
+            } catch (e) {
+                alert('Failed to load analysis.');
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-overlay').classList.remove('visible');
+        }
+
+        document.getElementById('detail-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeDetail();
+        });
+
+        // ========== COMPARE ==========
+        function openCompare(oldId, role, dateStr) {
+            compareOldId = oldId;
+            document.getElementById('compare-old-label').textContent = `${role} (${dateStr})`;
+            document.getElementById('compare-role').value = role;
+            document.getElementById('compare-upload-step').style.display = 'block';
+            document.getElementById('compare-loading').style.display = 'none';
+            document.getElementById('compare-results').style.display = 'none';
+            document.getElementById('compare-file').value = '';
+            document.getElementById('compare-file-info').style.display = 'none';
+            document.getElementById('compare-submit-btn').disabled = true;
+            document.getElementById('compare-overlay').classList.add('visible');
+        }
+
+        function closeCompare() {
+            document.getElementById('compare-overlay').classList.remove('visible');
+            compareOldId = null;
+        }
+
+        document.getElementById('compare-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCompare();
+        });
+
+        document.getElementById('compare-file').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                document.getElementById('compare-file-info').textContent = `✓ ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+                document.getElementById('compare-file-info').style.display = 'block';
+                document.getElementById('compare-submit-btn').disabled = false;
+            }
+        });
+
+        async function runComparison() {
+            const file = document.getElementById('compare-file').files[0];
+            const role = document.getElementById('compare-role').value.trim();
+            if (!file) return alert('Please upload your revised resume.');
+
+            document.getElementById('compare-upload-step').style.display = 'none';
+            document.getElementById('compare-loading').style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('resume', file);
+            formData.append('old_analysis_id', compareOldId);
+            if (role) formData.append('job_role', role);
+
+            try {
+                const res = await fetch('/api/compare', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                document.getElementById('compare-loading').style.display = 'none';
+                document.getElementById('compare-results').style.display = 'block';
+
+                // Score badges
+                const oldScore = data.old.score;
+                const newScore = data.new.score;
+                const badge = document.getElementById('compare-score-badge');
+                if (oldScore !== null && newScore !== null) {
+                    const diff = newScore - oldScore;
+                    const cls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+                    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+                    badge.innerHTML = `
+                        <span class="score-change ${cls}">
+                            ${arrow} ${Math.abs(diff)}% (${oldScore}% → ${newScore}%)
+                        </span>
+                    `;
+                } else {
+                    badge.innerHTML = '';
+                }
+
+                // Dates
+                const oldDate = new Date(data.old.created_at);
+                const newDate = new Date(data.new.created_at);
+                document.getElementById('compare-old-date').textContent =
+                    oldDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                document.getElementById('compare-new-date').textContent =
+                    newDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                // Bodies
+                document.getElementById('compare-old-body').innerHTML = formatAIOutput(data.old.analysis_result);
+                document.getElementById('compare-new-body').innerHTML = formatAIOutput(data.new.analysis_result);
+
+                // Refresh history
+                loadHistory();
+
+            } catch (e) {
+                document.getElementById('compare-loading').style.display = 'none';
+                document.getElementById('compare-upload-step').style.display = 'block';
+                alert(e.message || 'Comparison failed.');
+            }
+        }
+
+        // ========== MARKDOWN-LIKE FORMATTER ==========
+        function formatAIOutput(text) {
+            let html = text
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^(\d+)\)\s*(.+)$/gm, '<h3>$1) $2</h3>')
+                .replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>')
+                .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+                .replace(/\n{2,}/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            return '<p>' + html + '</p>';
+        }
+
+        // ========== RESIZE HANDLER ==========
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => renderChart(allAnalyses), 200);
+        });
+
+        // ========== INIT ==========
+        loadHistory();
+    </script>
+</body>
+</html>
