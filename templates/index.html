@@ -12,6 +12,8 @@
             --primary-color: #F7E7CE;
             --secondary-color: #E3D3B8;
             --bg-color: #102C26;
+            --bg-alt: rgba(0, 0, 0, 0.2);
+            --bg-alt-border: transparent;
             --card-bg: #163831;
             --text-color: #F7E7CE;
             --border-color: #1F4F45;
@@ -38,6 +40,8 @@
             --primary-color: #191970;
             --secondary-color: #0F0F4D;
             --bg-color: #ECEFF1;
+            --bg-alt: rgba(255, 255, 255, 0.45);
+            --bg-alt-border: transparent;
             --card-bg: #FFFFFF;
             --text-color: #191970;
             --border-color: #CFD8DC;
@@ -111,30 +115,49 @@
         }
 
         /* ========== NAVBAR ========== */
+        .navbar-wrapper {
+            position: sticky;
+            top: 1.5rem;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            pointer-events: none; /* Let clicks pass through empty space */
+            padding: 0 1rem;
+        }
+
         .navbar {
-            background: var(--card-bg);
-            padding: 0.85rem 2rem;
-            border-bottom: 1px solid var(--border-color);
+            background: color-mix(in srgb, var(--card-bg) 80%, transparent);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 0.6rem 0.6rem 0.6rem 1.75rem;
+            border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+            border-radius: 100px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            max-width: 1200px;
             box-shadow:
-                0 1px 3px rgba(0,0,0,0.06),
-                0 4px 12px rgba(0,0,0,0.02);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+                0 12px 32px rgba(0,0,0,0.06),
+                0 2px 6px rgba(0,0,0,0.04),
+                inset 0 1px 1px color-mix(in srgb, #ffffff 15%, transparent);
+            pointer-events: auto; /* Re-enable for navbar itself */
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .brand {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 1.3rem;
-            color: var(--primary-color);
-            letter-spacing: -0.02em;
+            color: var(--text-color);
+            letter-spacing: -0.03em;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            text-decoration: none;
+            transition: transform 0.3s ease;
         }
+        .brand:hover { transform: translateY(-1px); }
+        .brand span { color: var(--primary-color); }
 
         .toggle-container {
             background: var(--bg-color);
@@ -168,7 +191,7 @@
 
         /* ========== LAYOUT ========== */
         .container {
-            max-width: 880px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 0 1.25rem;
             position: relative;
@@ -190,10 +213,10 @@
         /* ========== CARDS ========== */
         .card {
             background: var(--card-bg);
-            border-radius: 0.875rem;
-            padding: 1.75rem;
+            border-radius: 1.25rem;
+            padding: 2.25rem 2.5rem;
             border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             box-shadow:
                 0 1px 2px rgba(0,0,0,0.04),
                 0 4px 12px rgba(0,0,0,0.03),
@@ -211,7 +234,19 @@
         }
 
         /* ========== FORM ELEMENTS ========== */
-        .form-group { margin-bottom: 1.25rem; }
+        .form-row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+            .card { padding: 1.5rem; }
+        }
+
+        .form-group { margin-bottom: 1.25rem; height: 100%; display: flex; flex-direction: column; }
 
         label {
             display: block;
@@ -311,6 +346,8 @@
             inset: 0;
             opacity: 0;
             cursor: pointer;
+            width: 100%;
+            height: 100%;
         }
 
         .file-preview {
@@ -595,7 +632,7 @@
         /* ========== RESPONSIVE ========== */
         @media (max-width: 640px) {
             .summary-grid { grid-template-columns: 1fr; }
-            .container { padding: 0 0.75rem; }
+            .container { padding: 0 0.75rem; margin-top: 1rem; }
             .card { padding: 1.25rem; }
             .hero-heading { font-size: 2.25rem !important; }
             .hero-tagline { font-size: 0.95rem !important; }
@@ -605,12 +642,24 @@
             .showcase-text { max-width: 100% !important; }
             .showcase-demo { max-width: 100% !important; }
         }
+        
+        /* ========== SECTION WRAPPERS ========== */
+        .section-wrapper.alt {
+            background: var(--bg-alt);
+            padding: 3rem 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .section-wrapper.alt-fade-to-footer {
+            background: linear-gradient(to bottom, var(--bg-alt) 75%, #ffffff 100%);
+        }
 
         /* ========== FEATURE SHOWCASE ========== */
         .showcase-section {
-            max-width: 960px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 4rem 1.25rem 3rem;
+            padding: 4.5rem 1.5rem 3.5rem;
             position: relative;
             z-index: 1;
         }
@@ -632,62 +681,36 @@
 
         .showcase-text {
             flex: 1;
-            max-width: 420px;
+            max-width: 500px;
         }
 
         .showcase-label {
-            font-size: 0.7rem;
-            font-weight: 600;
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 0.6rem;
+            letter-spacing: 0.12em;
+            color: var(--primary-color);
+            background: var(--focus-ring);
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            margin-bottom: 1.25rem;
         }
 
         .showcase-heading {
-            font-size: 1.65rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.25;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
             color: var(--text-color);
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .showcase-desc {
-            font-size: 0.9rem;
+            font-size: 1.15rem;
             color: var(--muted);
-            line-height: 1.65;
-            margin-bottom: 1.5rem;
-        }
-
-        .showcase-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.85rem;
-        }
-
-        .showcase-features li {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .feat-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 0.4rem;
-            background: var(--focus-ring);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            flex-shrink: 0;
+            line-height: 1.6;
+            margin-bottom: 0; /* Removed bottom margin since the list below it is gone */
         }
 
         /* ========== DEMO CARD ========== */
@@ -867,8 +890,8 @@
         .hero-tagline {
             font-size: 1.1rem;
             color: var(--muted);
-            max-width: 480px;
-            margin: 0 auto 2rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
             line-height: 1.55;
             font-weight: 400;
         }
@@ -931,34 +954,35 @@
             display: block;
         }
 
-        /* ========== MINIMAL NAVBAR (no toggle) ========== */
+        /* ========== MINIMAL NAVBAR ========== */
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 0.3rem;
             align-items: center;
         }
 
         .nav-link {
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--muted);
             text-decoration: none;
-            transition: color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            transition: all 0.3s ease;
             cursor: pointer;
-            background: none;
-            border: none;
-            font-family: inherit;
+            background: transparent;
         }
 
         .nav-link:hover {
-            color: var(--primary-color);
+            color: var(--text-color);
+            background: color-mix(in srgb, var(--text-color) 6%, transparent);
         }
 
         /* ========== ABOUT SECTION (Showcase Style) ========== */
         .about-section {
-            max-width: 960px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 4rem 1.25rem 3rem;
+            padding: 4.5rem 1.5rem 3.5rem;
             position: relative;
             z-index: 1;
         }
@@ -980,50 +1004,36 @@
 
         .about-text {
             flex: 1;
-            max-width: 420px;
+            max-width: 500px;
         }
 
         .about-label {
-            font-size: 0.7rem;
-            font-weight: 600;
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 0.6rem;
+            letter-spacing: 0.12em;
+            color: var(--primary-color);
+            background: var(--focus-ring);
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            margin-bottom: 1.25rem;
         }
 
         .about-heading {
-            font-size: 1.65rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            line-height: 1.25;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
             color: var(--text-color);
-            margin-bottom: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .about-desc {
-            font-size: 0.9rem;
+            font-size: 1.15rem;
             color: var(--muted);
-            line-height: 1.65;
-            margin-bottom: 1.5rem;
-        }
-
-        .about-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.85rem;
-        }
-
-        .about-features li {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 0;
         }
 
         .about-card {
@@ -1272,7 +1282,7 @@
 
         /* ========== COMPARISON TABLE ========== */
         .compare-section {
-            max-width: 1080px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 3.5rem 1.5rem 2.5rem;
             position: relative;
@@ -1292,12 +1302,12 @@
         .compare-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 1rem;
+            font-size: 0.95rem;
         }
 
         .compare-table th,
         .compare-table td {
-            padding: 1.15rem 1.5rem;
+            padding: 1.25rem 1.75rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
@@ -1305,7 +1315,7 @@
         .compare-table thead th {
             background: var(--table-header-bg);
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-transform: none;
             letter-spacing: 0;
         }
@@ -1342,160 +1352,157 @@
 
         /* ========== FOOTER ========== */
         .site-footer {
-            background: var(--footer-bg);
-            color: rgba(255,255,255,0.75);
-            padding: 4rem 1.5rem 0;
+            background: #ffffff;
+            color: #000000;
+            padding-top: 2rem;
             position: relative;
             z-index: 1;
-            margin-top: 2rem;
+            margin-top: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            border-top: 1px solid #eaeaea;
         }
 
-        .footer-inner {
-            max-width: 1100px;
+        .footer-top {
+            max-width: 1200px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
-            gap: 3rem;
-            padding-bottom: 3rem;
-        }
-
-        .footer-brand-name {
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.01em;
-        }
-
-        .footer-brand-desc {
-            font-size: 0.84rem;
-            line-height: 1.7;
-            margin-bottom: 1.25rem;
-            color: rgba(255,255,255,0.55);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
         }
 
         .footer-socials {
             display: flex;
-            gap: 0.65rem;
+            gap: 1rem;
         }
 
         .footer-social-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
+            font-size: 1.15rem;
+            color: #000000;
+            text-decoration: none;
+            transition: color 0.2s, transform 0.2s;
+            font-weight: 700;
+            opacity: 0.85;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: background 0.2s, color 0.2s;
         }
 
         .footer-social-icon:hover {
-            background: var(--primary-color);
-            color: #fff;
+            color: var(--primary-color);
+            opacity: 1;
+            transform: translateY(-2px);
         }
 
-        .footer-col-title {
-            font-size: 0.78rem;
+        .footer-middle {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3.5rem;
+            font-size: 0.875rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .footer-copyright {
+            color: #444;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .footer-copyright span:first-child {
+            color: #666;
+            font-weight: 500;
         }
 
         .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
             display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .footer-links a {
-            color: rgba(255,255,255,0.65);
+            color: #555;
             text-decoration: none;
-            font-size: 0.84rem;
+            font-weight: 500;
             transition: color 0.2s;
         }
 
         .footer-links a:hover {
-            color: #fff;
+            color: #000;
         }
-
-        .footer-cta-text {
-            font-size: 0.84rem;
-            line-height: 1.65;
-            color: rgba(255,255,255,0.55);
-            margin-bottom: 1rem;
-        }
-
-        .footer-cta-btn {
-            display: inline-block;
-            padding: 0.6rem 1.5rem;
-            background: var(--primary-color);
-            color: #fff;
-            border: none;
-            border-radius: 2rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-            font-family: inherit;
-        }
-
-        .footer-cta-btn:hover {
-            background: var(--secondary-color);
-            transform: translateY(-1px);
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.08);
-            padding: 1.25rem 0;
-            max-width: 1100px;
-            margin: 0 auto;
+        
+        .footer-dropdown {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 0.76rem;
-            color: rgba(255,255,255,0.35);
+            gap: 0.25rem;
+            cursor: pointer;
+            color: #555;
+            font-weight: 500;
         }
 
-        .footer-bottom-links {
+        .footer-giant-brand-container {
+            width: 100%;
+            padding-top: 4rem;
+            position: relative;
+            overflow: hidden;
             display: flex;
-            gap: 1.25rem;
+            align-items: flex-end;
+            justify-content: center;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ede7f6 100%);
+        }
+        
+        .footer-giant-brand-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(126, 87, 194, 0.45) 0px,
+                rgba(126, 87, 194, 0.45) 1.5px,
+                transparent 1.5px,
+                transparent 5px,
+                rgba(38, 166, 154, 0.45) 5px,
+                rgba(38, 166, 154, 0.45) 6.5px,
+                transparent 6.5px,
+                transparent 9px
+            );
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,1) 80%);
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,1) 80%);
+            z-index: 0;
         }
 
-        .footer-bottom-links a {
-            color: rgba(255,255,255,0.35);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer-bottom-links a:hover {
-            color: rgba(255,255,255,0.7);
+        .footer-giant-brand {
+            font-size: clamp(80px, 18vw, 320px);
+            font-weight: 900;
+            color: #1a1a24;
+            line-height: 0.72;
+            letter-spacing: -0.04em;
+            margin: 0;
+            padding: 0;
+            text-transform: uppercase;
+            white-space: nowrap;
+            z-index: 1;
+            user-select: none;
         }
 
         @media (max-width: 768px) {
-            .footer-inner {
-                grid-template-columns: 1fr 1fr;
-                gap: 2rem;
-            }
-        }
-        @media (max-width: 480px) {
-            .footer-inner {
-                grid-template-columns: 1fr;
-                gap: 1.75rem;
-            }
-            .footer-bottom {
+            .footer-middle {
                 flex-direction: column;
-                gap: 0.5rem;
-                text-align: center;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            .footer-links {
+                gap: 1.25rem;
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -1764,44 +1771,70 @@
             display: flex;
             gap: 0.5rem;
             align-items: center;
-            margin-left: 1rem;
+            margin-left: 0.5rem;
+            padding-left: 1rem;
+            border-left: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
         }
 
         .nav-auth-link {
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-color);
             text-decoration: none;
-            padding: 0.45rem 0.9rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s ease;
+            padding: 0.6rem 1.25rem;
+            border-radius: 100px;
+            transition: all 0.3s ease;
         }
 
         .nav-auth-link:hover {
-            color: var(--primary-color);
+            background: color-mix(in srgb, var(--text-color) 6%, transparent);
         }
 
         .nav-auth-link.btn-nav-signup {
             background: var(--primary-color);
             color: var(--btn-text-color);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 40%, transparent);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        /* Subtle overlay for sign up button */
+        .nav-auth-link.btn-nav-signup::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            z-index: -1;
+            transition: opacity 0.3s;
         }
 
         .nav-auth-link.btn-nav-signup:hover {
-            background: var(--secondary-color);
+            background: var(--primary-color);
+            box-shadow: 0 6px 16px color-mix(in srgb, var(--primary-color) 50%, transparent);
+            transform: translateY(-1px);
+        }
+        
+        .nav-auth-link.btn-nav-signup:hover::before {
+            opacity: 0.5;
         }
 
         .nav-user-name {
-            font-size: 0.82rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
             color: var(--text-color);
-            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 1rem;
+            background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+            border-radius: 100px;
+            border: 1px solid color-mix(in srgb, var(--primary-color) 15%, transparent);
         }
-
-        .nav-divider {
-            width: 1px;
-            height: 16px;
-            background: var(--border-color);
-            margin: 0 0.25rem;
+        
+        .nav-user-name .avatar-icon {
+            font-size: 1rem;
+            opacity: 0.8;
         }
 
         /* ========== PAGE LOADER ========== */
@@ -2216,26 +2249,29 @@
     <div class="gradient-shape" aria-hidden="true"></div>
 
     <!-- Top Navigation -->
-    <nav class="navbar" role="navigation" aria-label="Main navigation">
-        <div class="brand">ResumeAI</div>
-        <div class="nav-links">
-            <a class="nav-link" href="#features">Features</a>
-            <a class="nav-link" href="#about">About</a>
-            {% if user %}
-                <a class="nav-link" href="/history">History</a>
-            {% endif %}
-            <div class="nav-divider"></div>
-            <div class="nav-auth">
+    <div class="navbar-wrapper">
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <a href="/" class="brand">Resume<span>AI</span></a>
+            <div class="nav-links">
+                <a class="nav-link" href="#features">Features</a>
+                <a class="nav-link" href="#about">About</a>
                 {% if user %}
-                    <span class="nav-user-name">👤 {{ user['name'] }}</span>
-                    <a class="nav-auth-link" href="/logout">Logout</a>
-                {% else %}
-                    <a class="nav-auth-link" href="/login">Log In</a>
-                    <a class="nav-auth-link btn-nav-signup" href="/signup">Sign Up</a>
+                    <a class="nav-link" href="/history">History</a>
                 {% endif %}
+                <div class="nav-auth">
+                    {% if user %}
+                        <div class="nav-user-name">
+                            <span class="avatar-icon">👤</span> {{ user['name'] }}
+                        </div>
+                        <a class="nav-auth-link" href="/logout">Logout</a>
+                    {% else %}
+                        <a class="nav-auth-link" href="/login">Log In</a>
+                        <a class="nav-auth-link btn-nav-signup" href="/signup">Sign Up</a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero" aria-label="ResumeAI overview">
@@ -2261,31 +2297,33 @@
                 <h2>🎯 Resume Analyzer</h2>
                 <p class="microcopy">Let's optimize your resume for ATS. Upload your resume, tell us the role — our AI does the rest.</p>
 
-                <div class="form-group">
-                    <label for="student-role">Target Job Role <span style="color:var(--badge-low)">*</span> <span class="label-hint">— helps us tailor the analysis</span></label>
-                    <input type="text" id="student-role" placeholder="e.g. Software Engineer, Data Analyst..." aria-label="Enter target job role" autocomplete="off">
-                    <div class="role-chips" aria-label="Quick role suggestions">
-                        <button class="role-chip" onclick="fillRole('Software Engineer')">Software Engineer</button>
-                        <button class="role-chip" onclick="fillRole('Data Analyst')">Data Analyst</button>
-                        <button class="role-chip" onclick="fillRole('DevOps Engineer')">DevOps Engineer</button>
-                        <button class="role-chip" onclick="fillRole('Product Manager')">Product Manager</button>
-                        <button class="role-chip" onclick="fillRole('Frontend Developer')">Frontend Developer</button>
-                        <button class="role-chip" onclick="fillRole('Python Developer')">Python Developer</button>
+                <div class="form-row-grid">
+                    <div class="form-group">
+                        <label for="student-role">Target Job Role <span style="color:var(--badge-low)">*</span> <span class="label-hint">— helps us tailor the analysis</span></label>
+                        <input type="text" id="student-role" placeholder="e.g. Software Engineer, Data Analyst..." aria-label="Enter target job role" autocomplete="off">
+                        <div class="role-chips" aria-label="Quick role suggestions">
+                            <button class="role-chip" onclick="fillRole('Software Engineer')">Software Engineer</button>
+                            <button class="role-chip" onclick="fillRole('Data Analyst')">Data Analyst</button>
+                            <button class="role-chip" onclick="fillRole('DevOps Engineer')">DevOps Engineer</button>
+                            <button class="role-chip" onclick="fillRole('Product Manager')">Product Manager</button>
+                            <button class="role-chip" onclick="fillRole('Frontend Developer')">Frontend Developer</button>
+                            <button class="role-chip" onclick="fillRole('Python Developer')">Python Developer</button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>Upload Resume <span class="label-hint">— PDF or DOCX, max 2MB</span></label>
-                    <div class="dropzone" id="student-dropzone" role="button" tabindex="0" aria-label="Upload resume file">
-                        <input type="file" id="student-file" accept=".pdf,.docx" aria-label="Choose resume file">
-                        <div class="dropzone-icon">📄</div>
-                        <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop your resume here</div>
-                    </div>
-                    <div class="file-preview" id="student-file-preview">
-                        <span class="check">✓</span>
-                        <span class="file-info" id="student-file-name">—</span>
-                        <span class="file-size" id="student-file-size">—</span>
-                        <button class="remove-btn" onclick="clearStudentFile()" aria-label="Remove file">✕</button>
+                    <div class="form-group">
+                        <label>Upload Resume <span class="label-hint">— PDF or DOCX, max 2MB</span></label>
+                        <div class="dropzone" id="student-dropzone" role="button" tabindex="0" aria-label="Upload resume file">
+                            <input type="file" id="student-file" accept=".pdf,.docx" aria-label="Choose resume file">
+                            <div class="dropzone-icon">📄</div>
+                            <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop your resume here</div>
+                        </div>
+                        <div class="file-preview" id="student-file-preview">
+                            <span class="check">✓</span>
+                            <span class="file-info" id="student-file-name">—</span>
+                            <span class="file-size" id="student-file-size">—</span>
+                            <button class="remove-btn" onclick="clearStudentFile()" aria-label="Remove file">✕</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2346,23 +2384,25 @@
                 <h2>⚡ Recruiter Dashboard</h2>
                 <p class="microcopy">Quick-scan candidates against your job description. Instant skill matching and scoring.</p>
 
-                <div class="form-group">
-                    <label for="recruiter-jd">Job Description <span class="label-hint">— paste JD for skill-match scoring</span></label>
-                    <textarea id="recruiter-jd" rows="4" placeholder="Paste the full job description here to enable smart matching..." aria-label="Enter job description"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Upload Resumes <span class="label-hint">— PDF or DOCX, max 2MB each</span></label>
-                    <div class="dropzone" id="recruiter-dropzone" role="button" tabindex="0" aria-label="Upload resume files">
-                        <input type="file" id="recruiter-files" multiple accept=".pdf,.docx" aria-label="Choose resume files">
-                        <div class="dropzone-icon">📂</div>
-                        <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop resumes here</div>
+                <div class="form-row-grid">
+                    <div class="form-group">
+                        <label for="recruiter-jd">Job Description <span class="label-hint">— paste JD for skill-match scoring</span></label>
+                        <textarea id="recruiter-jd" rows="4" style="flex: 1" placeholder="Paste the full job description here to enable smart matching..." aria-label="Enter job description"></textarea>
                     </div>
-                    <div class="file-preview" id="recruiter-file-preview">
-                        <span class="check">✓</span>
-                        <span class="file-info" id="recruiter-file-name">—</span>
-                        <span class="file-size" id="recruiter-file-size">—</span>
-                        <button class="remove-btn" onclick="clearRecruiterFile()" aria-label="Remove file">✕</button>
+
+                    <div class="form-group">
+                        <label>Upload Resumes <span class="label-hint">— PDF or DOCX, max 2MB each</span></label>
+                        <div class="dropzone" id="recruiter-dropzone" style="flex: 1; display:flex; flex-direction:column; justify-content:center;" role="button" tabindex="0" aria-label="Upload resume files">
+                            <input type="file" id="recruiter-files" multiple accept=".pdf,.docx" aria-label="Choose resume files">
+                            <div class="dropzone-icon">📂</div>
+                            <div class="dropzone-text"><strong>Click to browse</strong> or drag & drop resumes here</div>
+                        </div>
+                        <div class="file-preview" id="recruiter-file-preview">
+                            <span class="check">✓</span>
+                            <span class="file-info" id="recruiter-file-name">—</span>
+                            <span class="file-size" id="recruiter-file-size">—</span>
+                            <button class="remove-btn" onclick="clearRecruiterFile()" aria-label="Remove file">✕</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2411,64 +2451,59 @@
     </div>
 
     <!-- ========== FEATURE SHOWCASE ========== -->
-    <section id="features" class="showcase-section" aria-label="Feature overview">
-        <div class="showcase-divider"></div>
-        <div class="showcase">
-            <div class="showcase-text">
-                <div class="showcase-label">How it works</div>
-                <h2 class="showcase-heading">AI-Powered Resume Intelligence</h2>
-                <p class="showcase-desc">ResumeAI analyzes your resume using intelligent keyword matching and contextual understanding to optimize it for ATS systems and hiring managers.</p>
-                <ul class="showcase-features">
-                    <li><span class="feat-icon">📊</span> ATS Compatibility Scoring</li>
-                    <li><span class="feat-icon">🎯</span> Role-Based Keyword Optimization</li>
-                    <li><span class="feat-icon">🔍</span> Skill Gap Detection</li>
-                    <li><span class="feat-icon">🤝</span> Recruiter Alignment Insights</li>
-                </ul>
-            </div>
-            <div class="showcase-demo">
-                <div class="demo-card">
-                    <div class="demo-flow">
-                        <!-- Frame 1: Upload -->
-                        <div class="demo-frame">
-                            <div class="demo-icon">📄</div>
-                            <div class="demo-title">Resume Uploaded</div>
-                            <div class="demo-subtitle">john_doe_resume.pdf ready for analysis</div>
-                            <div class="demo-feedback-lines">
-                                <div class="demo-line"></div>
-                                <div class="demo-line"></div>
-                                <div class="demo-line"></div>
+    <div class="section-wrapper alt alt-fade-to-footer">
+        <section id="features" class="showcase-section" aria-label="Feature overview">
+            <div class="showcase-divider"></div>
+            <div class="showcase">
+                <div class="showcase-text">
+                    <div class="showcase-label">How it works</div>
+                    <h2 class="showcase-heading">AI-Powered Resume Intelligence</h2>
+                    <p class="showcase-desc">ResumeAI analyzes your resume using intelligent keyword matching and contextual understanding to optimize it for ATS systems and hiring managers.</p>
+                </div>
+                <div class="showcase-demo">
+                    <div class="demo-card">
+                        <div class="demo-flow">
+                            <!-- Frame 1: Upload -->
+                            <div class="demo-frame">
+                                <div class="demo-icon">📄</div>
+                                <div class="demo-title">Resume Uploaded</div>
+                                <div class="demo-subtitle">john_doe_resume.pdf ready for analysis</div>
+                                <div class="demo-feedback-lines">
+                                    <div class="demo-line"></div>
+                                    <div class="demo-line"></div>
+                                    <div class="demo-line"></div>
+                                </div>
                             </div>
-                        </div>
-                        <!-- Frame 2: Scanning -->
-                        <div class="demo-frame">
-                            <div class="demo-icon">⚙️</div>
-                            <div class="demo-title">AI Analyzing…</div>
-                            <div class="demo-subtitle">Scanning keywords, skills, and structure</div>
-                            <div class="demo-scan-bar"><div class="demo-scan-fill"></div></div>
-                        </div>
-                        <!-- Frame 3: Score -->
-                        <div class="demo-frame">
-                            <div class="demo-score-ring">87%</div>
-                            <div class="demo-title">ATS Score</div>
-                            <div class="demo-subtitle">Strong match for Software Engineer</div>
-                        </div>
-                        <!-- Frame 4: Feedback -->
-                        <div class="demo-frame">
-                            <div class="demo-icon">✅</div>
-                            <div class="demo-title">Feedback Ready</div>
-                            <div class="demo-feedback-lines">
-                                <div class="demo-line accent"></div>
-                                <div class="demo-line"></div>
-                                <div class="demo-line accent"></div>
-                                <div class="demo-line"></div>
+                            <!-- Frame 2: Scanning -->
+                            <div class="demo-frame">
+                                <div class="demo-icon">⚙️</div>
+                                <div class="demo-title">AI Analyzing…</div>
+                                <div class="demo-subtitle">Scanning keywords, skills, and structure</div>
+                                <div class="demo-scan-bar"><div class="demo-scan-fill"></div></div>
                             </div>
-                            <div class="demo-subtitle">4 suggestions to improve your resume</div>
+                            <!-- Frame 3: Score -->
+                            <div class="demo-frame">
+                                <div class="demo-score-ring">87%</div>
+                                <div class="demo-title">ATS Score</div>
+                                <div class="demo-subtitle">Strong match for Software Engineer</div>
+                            </div>
+                            <!-- Frame 4: Feedback -->
+                            <div class="demo-frame">
+                                <div class="demo-icon">✅</div>
+                                <div class="demo-title">Feedback Ready</div>
+                                <div class="demo-feedback-lines">
+                                    <div class="demo-line accent"></div>
+                                    <div class="demo-line"></div>
+                                    <div class="demo-line accent"></div>
+                                    <div class="demo-line"></div>
+                                </div>
+                                <div class="demo-subtitle">4 suggestions to improve your resume</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
     <!-- ========== DATA EXTRACTION SECTION ========== -->
     <section class="extraction-section" aria-label="What ResumeAI analyzes">
@@ -2525,97 +2560,97 @@
         </div>
     </section>
 
-    <!-- ========== BUILT FOR EVERYONE ========== -->
-    <section class="audience-section" aria-label="Who ResumeAI is for">
-        <div class="section-divider"></div>
-        <div class="section-center-header fade-in">
-            <h2 class="section-center-heading">Built for Everyone</h2>
-            <p class="section-center-subtitle">Whether you're a student, job seeker, recruiter, or HR team — ResumeAI scales with your needs.</p>
-        </div>
-        <div class="audience-grid fade-in">
-            <div class="audience-card">
-                <div class="audience-icon-wrap">🎓</div>
-                <div class="audience-card-title">For Students</div>
-                <p class="audience-card-desc">Optimize your first resume for ATS systems. Get AI-powered feedback tailored to entry-level roles and internships.</p>
-                <a class="audience-card-link" onclick="switchMode('student')" style="cursor:pointer">Try Student Mode →</a>
+    <!-- ========== BUILT FOR EVERYONE & COMPARE ========== -->
+        <section class="audience-section" aria-label="Who ResumeAI is for">
+            <div class="section-divider"></div>
+            <div class="section-center-header fade-in">
+                <h2 class="section-center-heading">Built for Everyone</h2>
+                <p class="section-center-subtitle">Whether you're a student, job seeker, recruiter, or HR team — ResumeAI scales with your needs.</p>
             </div>
-            <div class="audience-card">
-                <div class="audience-icon-wrap">💼</div>
-                <div class="audience-card-title">For Job Seekers</div>
-                <p class="audience-card-desc">Tailor your resume to any role. Identify missing keywords and skill gaps before you apply.</p>
-                <a class="audience-card-link" onclick="switchMode('student')" style="cursor:pointer">Analyze Resume →</a>
+            <div class="audience-grid fade-in">
+                <div class="audience-card">
+                    <div class="audience-icon-wrap">🎓</div>
+                    <div class="audience-card-title">For Students</div>
+                    <p class="audience-card-desc">Optimize your first resume for ATS systems. Get AI-powered feedback tailored to entry-level roles and internships.</p>
+                    <a class="audience-card-link" onclick="switchMode('student')" style="cursor:pointer">Try Student Mode →</a>
+                </div>
+                <div class="audience-card">
+                    <div class="audience-icon-wrap">💼</div>
+                    <div class="audience-card-title">For Job Seekers</div>
+                    <p class="audience-card-desc">Tailor your resume to any role. Identify missing keywords and skill gaps before you apply.</p>
+                    <a class="audience-card-link" onclick="switchMode('student')" style="cursor:pointer">Analyze Resume →</a>
+                </div>
+                <div class="audience-card">
+                    <div class="audience-icon-wrap">🔍</div>
+                    <div class="audience-card-title">For Recruiters</div>
+                    <p class="audience-card-desc">Screen candidates 10x faster with AI-powered parsing. Score and rank resumes against your job description.</p>
+                    <a class="audience-card-link" onclick="switchMode('recruiter')" style="cursor:pointer">Try Recruiter Mode →</a>
+                </div>
+                <div class="audience-card">
+                    <div class="audience-icon-wrap">🏢</div>
+                    <div class="audience-card-title">For HR Teams</div>
+                    <p class="audience-card-desc">Streamline your hiring pipeline. Make data-driven decisions with skill-match scoring and candidate analytics.</p>
+                    <a class="audience-card-link" onclick="switchMode('recruiter')" style="cursor:pointer">Get Started →</a>
+                </div>
             </div>
-            <div class="audience-card">
-                <div class="audience-icon-wrap">🔍</div>
-                <div class="audience-card-title">For Recruiters</div>
-                <p class="audience-card-desc">Screen candidates 10x faster with AI-powered parsing. Score and rank resumes against your job description.</p>
-                <a class="audience-card-link" onclick="switchMode('recruiter')" style="cursor:pointer">Try Recruiter Mode →</a>
-            </div>
-            <div class="audience-card">
-                <div class="audience-icon-wrap">🏢</div>
-                <div class="audience-card-title">For HR Teams</div>
-                <p class="audience-card-desc">Streamline your hiring pipeline. Make data-driven decisions with skill-match scoring and candidate analytics.</p>
-                <a class="audience-card-link" onclick="switchMode('recruiter')" style="cursor:pointer">Get Started →</a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- ========== COMPARISON TABLE ========== -->
-    <section class="compare-section" aria-label="How ResumeAI compares">
-        <div class="section-divider"></div>
-        <div class="section-center-header fade-in">
-            <h2 class="section-center-heading">How ResumeAI Compares</h2>
-            <p class="section-center-subtitle">See how ResumeAI stacks up against traditional resume review methods.</p>
-        </div>
-        <div class="compare-table-wrap fade-in">
-            <table class="compare-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th class="highlight">ResumeAI</th>
-                        <th>Manual Review</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>ATS Compatibility Check</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Yes</span></td>
-                        <td class="muted-col"><span class="compare-no">✗ No</span></td>
-                    </tr>
-                    <tr>
-                        <td>Instant Feedback</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Seconds</span></td>
-                        <td class="muted-col"><span class="compare-no">✗ Days</span></td>
-                    </tr>
-                    <tr>
-                        <td>Keyword Optimization</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ AI-Powered</span></td>
-                        <td class="muted-col"><span class="compare-partial">~ Subjective</span></td>
-                    </tr>
-                    <tr>
-                        <td>Skill Gap Detection</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Automated</span></td>
-                        <td class="muted-col"><span class="compare-no">✗ Limited</span></td>
-                    </tr>
-                    <tr>
-                        <td>Multi-Candidate Scoring</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Built-In</span></td>
-                        <td class="muted-col"><span class="compare-no">✗ Not Available</span></td>
-                    </tr>
-                    <tr>
-                        <td>Free Tier</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Yes</span></td>
-                        <td class="muted-col"><span class="compare-partial">~ Varies</span></td>
-                    </tr>
-                    <tr>
-                        <td>Analysis History</td>
-                        <td class="highlight-col"><span class="compare-yes">✓ Full History</span></td>
-                        <td class="muted-col"><span class="compare-no">✗ None</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
+        <!-- ========== COMPARISON TABLE ========== -->
+        <section class="compare-section" aria-label="How ResumeAI compares" style="margin-top: 4rem;">
+            <div class="section-divider"></div>
+            <div class="section-center-header fade-in">
+                <h2 class="section-center-heading">How ResumeAI Compares</h2>
+                <p class="section-center-subtitle">See how ResumeAI stacks up against traditional resume review methods.</p>
+            </div>
+            <div class="compare-table-wrap fade-in">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="highlight">ResumeAI</th>
+                            <th>Manual Review</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ATS Compatibility Check</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Yes</span></td>
+                            <td class="muted-col"><span class="compare-no">✗ No</span></td>
+                        </tr>
+                        <tr>
+                            <td>Instant Feedback</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Seconds</span></td>
+                            <td class="muted-col"><span class="compare-no">✗ Days</span></td>
+                        </tr>
+                        <tr>
+                            <td>Keyword Optimization</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ AI-Powered</span></td>
+                            <td class="muted-col"><span class="compare-partial">~ Subjective</span></td>
+                        </tr>
+                        <tr>
+                            <td>Skill Gap Detection</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Automated</span></td>
+                            <td class="muted-col"><span class="compare-no">✗ Limited</span></td>
+                        </tr>
+                        <tr>
+                            <td>Multi-Candidate Scoring</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Built-In</span></td>
+                            <td class="muted-col"><span class="compare-no">✗ Not Available</span></td>
+                        </tr>
+                        <tr>
+                            <td>Free Tier</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Yes</span></td>
+                            <td class="muted-col"><span class="compare-partial">~ Varies</span></td>
+                        </tr>
+                        <tr>
+                            <td>Analysis History</td>
+                            <td class="highlight-col"><span class="compare-yes">✓ Full History</span></td>
+                            <td class="muted-col"><span class="compare-no">✗ None</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
     <!-- ========== ABOUT SECTION ========== -->
     <section id="about" class="about-section" aria-label="About ResumeAI">
@@ -2625,12 +2660,6 @@
                 <div class="about-label">About Us</div>
                 <h2 class="about-heading">Built to Bridge the Hiring Gap</h2>
                 <p class="about-desc">ResumeAI is an intelligent resume analysis platform that bridges the gap between job seekers and recruiters — delivering instant, AI-powered insights that matter.</p>
-                <ul class="about-features">
-                    <li><span class="feat-icon">⚡</span> Instant ATS Compatibility Scoring</li>
-                    <li><span class="feat-icon">🔑</span> Smart Keyword Optimization</li>
-                    <li><span class="feat-icon">📝</span> Actionable Resume Feedback</li>
-                    <li><span class="feat-icon">📊</span> Data-Driven Hiring Decisions</li>
-                </ul>
             </div>
             <div class="about-card">
                 <div class="mission-card">
@@ -2643,51 +2672,33 @@
             </div>
         </div>
     </section>
+    </div>
 
     <!-- ========== FOOTER ========== -->
     <footer class="site-footer">
-        <div class="footer-inner">
-            <div class="footer-brand">
-                <div class="footer-brand-name">ResumeAI</div>
-                <p class="footer-brand-desc">AI-powered resume analysis for students, job seekers, and recruiters. Optimize resumes, screen candidates, and hire smarter.</p>
-                <div class="footer-socials">
-                    <a href="#" class="footer-social-icon" aria-label="Twitter">𝕏</a>
-                    <a href="#" class="footer-social-icon" aria-label="LinkedIn">in</a>
-                    <a href="#" class="footer-social-icon" aria-label="GitHub">⮂</a>
-                    <a href="#" class="footer-social-icon" aria-label="Email">✉</a>
-                </div>
-            </div>
-            <div>
-                <div class="footer-col-title">Product</div>
-                <ul class="footer-links">
-                    <li><a href="#" onclick="switchMode('student')">Student Mode</a></li>
-                    <li><a href="#" onclick="switchMode('recruiter')">Recruiter Mode</a></li>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="/history">Analysis History</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">Resources</div>
-                <ul class="footer-links">
-                    <li><a href="#about">About Us</a></li>
-                    <li><a href="#">ATS Guide</a></li>
-                    <li><a href="#">Resume Tips</a></li>
-                    <li><a href="#" onclick="openFaqModal(); return false;">FAQ</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="footer-col-title">Get Started</div>
-                <p class="footer-cta-text">Ready to optimize your resume? Create a free account and start analyzing in seconds.</p>
-                <a href="/signup" class="footer-cta-btn">Sign Up Free →</a>
+        <div class="footer-top">
+            <div class="footer-socials">
+                <a href="#" class="footer-social-icon" aria-label="LinkedIn">in</a>
+                <a href="#" class="footer-social-icon" aria-label="Instagram">◎</a>
+                <a href="#" class="footer-social-icon" aria-label="TikTok">♪</a>
+                <a href="#" class="footer-social-icon" aria-label="YouTube">▶</a>
+                <a href="#" class="footer-social-icon" aria-label="Facebook">f</a>
+                <a href="#" class="footer-social-icon" aria-label="Twitter">𝕏</a>
             </div>
         </div>
-        <div class="footer-bottom">
-            <span>© 2026 ResumeAI. All rights reserved.</span>
-            <div class="footer-bottom-links">
+        <div class="footer-middle">
+            <div class="footer-copyright">
+                <span>© 2024 - 2026 ResumeAI.</span> <span>All rights reserved.</span>
+            </div>
+            <div class="footer-links">
                 <a href="#" onclick="openLegalModal('privacy'); return false;">Privacy Policy</a>
                 <a href="#" onclick="openLegalModal('terms'); return false;">Terms of Service</a>
-                <a href="#" onclick="openLegalModal('cookie'); return false;">Cookie Policy</a>
+                <a href="#" onclick="openLegalModal('cookie'); return false;">Cookies Settings</a>
+                <span class="footer-dropdown">English ▾</span>
             </div>
+        </div>
+        <div class="footer-giant-brand-container">
+            <h1 class="footer-giant-brand">RESUMEAI</h1>
         </div>
     </footer>
 
