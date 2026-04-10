@@ -448,7 +448,7 @@
                         </div>
                         <div class="analysis-actions">
                             <button class="btn-sm btn-view" onclick="event.stopPropagation(); viewAnalysis(${a.id})">View</button>
-                            <button class="btn-sm btn-compare" onclick="event.stopPropagation(); openCompare(${a.id}, '${escHtml(a.job_role)}', '${date}')">Compare</button>
+                            <button class="btn-sm btn-compare" data-id="${a.id}" data-role="${escHtml(a.job_role)}" data-date="${date}" onclick="event.stopPropagation(); openCompare(Number(this.dataset.id), this.dataset.role, this.dataset.date)">Compare</button>
                         </div>
                     </div>
                 `;

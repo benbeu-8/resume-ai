@@ -9,3 +9,5 @@ services:
         value: "3.12.0"
       - key: HUGGINGFACEHUB_API_TOKEN
         sync: false
+      - key: SECRET_KEY
+        generateValue: true

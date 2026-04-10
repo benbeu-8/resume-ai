@@ -2720,7 +2720,7 @@
             </div>
             <div class="faq-item">
                 <button class="faq-question" onclick="toggleFaq(this)">What file formats are supported? <span class="faq-arrow">▼</span></button>
-                <div class="faq-answer"><div class="faq-answer-inner">ResumeAI supports PDF (.pdf) and Word (.docx) file formats. The maximum file size is 5MB per resume.</div></div>
+                <div class="faq-answer"><div class="faq-answer-inner">ResumeAI supports PDF (.pdf) and Word (.docx) file formats. The maximum file size is 2MB per resume.</div></div>
             </div>
             <div class="faq-item">
                 <button class="faq-question" onclick="toggleFaq(this)">What is the difference between Student Mode and Recruiter Mode? <span class="faq-arrow">▼</span></button>
@@ -3248,11 +3248,11 @@
                     else if (r.score >= 40) { badgeClass = 'badge-med'; badgeLabel = 'Medium Fit'; }
                     return `
                         <tr>
-                            <td>${r.filename}</td>
-                            <td>${r.email}</td>
+                            <td>${escHtml(r.filename)}</td>
+                            <td>${escHtml(r.email)}</td>
                             <td><span class="badge ${badgeClass}">${r.score}% — ${badgeLabel}</span></td>
-                            <td>${r.matched_skills.join(', ') || '—'}</td>
-                            <td>${r.missing_skills.join(', ') || '—'}</td>
+                            <td>${escHtml(r.matched_skills.join(', ') || '—')}</td>
+                            <td>${escHtml(r.missing_skills.join(', ') || '—')}</td>
                         </tr>
                     `;
                 }).join('');

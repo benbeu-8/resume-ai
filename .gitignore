@@ -6,3 +6,4 @@ uploads/
 *.pdf
 .vscode/
 .DS_Store
+resumeai.db

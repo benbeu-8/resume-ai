@@ -90,7 +90,7 @@ def analyze_resume_with_llm(resume_text, job_role):
         }
         
         payload = {
-            "model": "deepseek-ai/DeepSeek-R1",
+            "model": "Qwen/Qwen3.5-9B",
             "messages": [
                 {"role": "system", "content": "You are a professional ATS resume optimization assistant. Analyze the resume against the target job role and provide a detailed, structured report. Your report MUST include ALL of the following sections: 1) STRENGTHS - What the resume does well for this role. 2) FLAWS & WEAKNESSES - Specific problems, gaps, or issues in the resume that could hurt the candidate. 3) MISSING ELEMENTS - Specific skills, keywords, certifications, or sections that are absent but expected for this role. 4) ACTIONABLE ADDITIONS - Concrete suggestions on exactly what to add, rewrite, or restructure to maximize shortlisting chances. Be specific and mention exact keywords, phrases, tools, or technologies to include. 5) ATS OPTIMIZATION TIPS - Formatting and keyword tips to pass Applicant Tracking Systems. Do not provide coding help or answer general questions."},
                 {"role": "user", "content": f"Analyze this resume for the job role: {job_role}. Identify all flaws, missing elements, and provide specific suggestions on what to add to maximize chances of getting shortlisted.\n\nResume content:\n{truncated_resume}"}
