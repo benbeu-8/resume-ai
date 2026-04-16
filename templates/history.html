@@ -403,7 +403,7 @@
         // ========== LOAD DATA ==========
         async function loadHistory() {
             try {
-                const res = await fetch('/api/history', { cache: 'no-store' });
+                const res = await fetch('/api/history');
                 const data = await res.json();
                 if (data.error) { window.location.href = '/login'; return; }
                 allAnalyses = data.analyses;
@@ -565,16 +565,9 @@
         // ========== VIEW DETAIL ==========
         async function viewAnalysis(id) {
             try {
-                const res = await fetch(`/api/analysis/${id}`, { cache: 'no-store' });
+                const res = await fetch(`/api/analysis/${id}`);
                 const data = await res.json();
-                if (data.error) {
-                    if (data.error === 'Analysis not found') {
-                        alert('This analysis is no longer available (it was likely cleared when the server restarted). Refreshing your list.');
-                        loadHistory();
-                        return;
-                    }
-                    return alert(data.error);
-                }
+                if (data.error) return alert(data.error);
 
                 const a = data.analysis;
                 document.getElementById('detail-title').textContent = `${a.job_role}`;
