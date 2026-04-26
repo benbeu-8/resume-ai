@@ -1,6 +1,7 @@
 import pdfplumber
 import re
 import docx
+import math
 
 # Extensive Database of Skills
 SKILLS_DB = [
@@ -62,7 +63,7 @@ def extract_skills_list(text):
     found_skills = set()
     text_lower = text.lower()
     for skill in SKILLS_DB:
-        # Use regex boundary to match exact words (e.g., avoid matching "java" in "javascript")
+        # Use  boundary to match exact words (e.g., avoid matching "java" in "javascript")
         if re.search(r'\b' + re.escape(skill) + r'\b', text_lower):
             found_skills.add(skill)
     return list(found_skills)
@@ -107,6 +108,7 @@ def extract_details(text):
 
     return results
 
+
 def calculate_match_score(candidate_skills, jd_skills):
     """
     Compares candidate skills with JD skills.
@@ -115,12 +117,12 @@ def calculate_match_score(candidate_skills, jd_skills):
     if not jd_skills:
         return 0, [], []
     
-    candidate_set = set(candidate_skills)
-    jd_set = set(jd_skills)
+    candidate_set = set(s.lower() for s in candidate_skills)
+    jd_set = set(s.lower() for s in jd_skills)
     
     matches = list(candidate_set.intersection(jd_set))
     missing = list(jd_set - candidate_set)
     
-    score = (len(matches) / len(jd_set)) * 100 if len(jd_set) > 0 else 0
-    return round(score, 2), matches, missing
-
+    # Use floor so 100% is only possible when ALL skills match
+    score = math.floor((len(matches) / len(jd_set)) * 100) if len(jd_set) > 0 else 0
+    return score, matches, missing

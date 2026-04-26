@@ -3231,7 +3231,9 @@
             progress.classList.add('visible');
 
             const formData = new FormData();
-            formData.append('resumes', files[0]);
+            for (let i = 0; i < files.length; i++) {
+                formData.append('resumes', files[i]);
+            }
             formData.append('job_description', jd);
 
             try {

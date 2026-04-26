@@ -239,66 +239,74 @@ def check_auth():
 @app.route('/parse', methods=['POST'])
 def parse_resume():
     """
-    Recruiter Mode Endpoint: Parses resume and extracts structured data.
+    Recruiter Mode Endpoint: Parses one or more resumes and extracts structured data.
     """
-    if 'resumes' not in request.files:
+    files = request.files.getlist('resumes')
+    if not files or all(f.filename == '' for f in files):
         return jsonify({"error": "No file uploaded"}), 400
-    
-    file = request.files['resumes']
-    # Optional: Recruiter might paste a JD to compare, but parsing is primary
-    job_description = request.form.get('job_description', '') 
 
-    if file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
+    job_description = request.form.get('job_description', '')
 
-    if not allowed_file(file.filename):
-        return jsonify({"error": "Invalid file type. PDF or DOCX only."}), 400
+    # Pre-extract JD skills once (shared across all resumes)
+    jd_skills = []
+    if job_description:
+        jd_skills = resume_parser.extract_skills_list(job_description)
 
-    # Securely save
-    original_filename = secure_filename(file.filename)
-    unique_filename = f"{uuid.uuid4()}_{original_filename}"
-    file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-    file.save(file_path)
+    results = []
+    errors = []
 
-    try:
-        # 1. Extract Text based on extension
-        if file_path.endswith('.docx'):
-            text = resume_parser.extract_text_from_docx(file_path)
-        else:
-            text = resume_parser.extract_text_from_pdf(file_path)
+    for file in files:
+        if file.filename == '':
+            continue
 
-        # 2. Extract Details
-        details = resume_parser.extract_details(text)
-        
-        # 3. Calculate Score if JD provided
-        score = 0
-        matches = []
-        missing = []
-        
-        if job_description:
-            jd_skills = resume_parser.extract_skills_list(job_description)
-            score, matches, missing = resume_parser.calculate_match_score(details['skills_list'], jd_skills)
+        if not allowed_file(file.filename):
+            errors.append(f"{file.filename}: Invalid file type. PDF or DOCX only.")
+            continue
 
-        # 4. Clean up
-        os.remove(file_path)
+        original_filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4()}_{original_filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+        file.save(file_path)
 
-        result = {
-            "filename": file.filename,
-            "email": details.get('email', 'Not Found'),
-            "skills": details.get('skills_list', []),
-            "score": score,
-            "matched_skills": matches,
-            "missing_skills": missing,
-            "raw_text_snippet": text[:500] + "..." # Preview
-        }
+        try:
+            # 1. Extract Text
+            if file_path.endswith('.docx'):
+                text = resume_parser.extract_text_from_docx(file_path)
+            else:
+                text = resume_parser.extract_text_from_pdf(file_path)
 
-        return jsonify({"results": [result]})
+            # 2. Extract Details
+            details = resume_parser.extract_details(text)
 
-    except Exception as e:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+            # 3. Calculate Score if JD provided
+            score = 0
+            matches = []
+            missing = []
+
+            if jd_skills:
+                score, matches, missing = resume_parser.calculate_match_score(details['skills_list'], jd_skills)
+
+            results.append({
+                "filename": file.filename,
+                "email": details.get('email', 'Not Found'),
+                "skills": details.get('skills_list', []),
+                "score": score,
+                "matched_skills": matches,
+                "missing_skills": missing,
+                "raw_text_snippet": text[:500] + "..."
+            })
+
+        except Exception as e:
+            errors.append(f"{file.filename}: {str(e)}")
+            traceback.print_exc()
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+    if not results and errors:
+        return jsonify({"error": "; ".join(errors)}), 400
+
+    return jsonify({"results": results})
 
 @app.route('/analyze', methods=['POST'])
 @rate_limit(limit=5, per=60) # 6️⃣ Security: Rate limiting
